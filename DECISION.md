@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-12  
 **Status:** Approved  
-
+**Superseded By:** D-006 — Hybrid Storage (JSONL Source of Truth + SQLite Aggregates)
 ---
 
 ### Context
