@@ -58,7 +58,7 @@ Schema:
 - session_id
 
 Performance Target:
-- <1% background CPU during idle monitoring
+- <2% background CPU during idle monitoring
 
 ---
 
