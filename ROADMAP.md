@@ -1,14 +1,14 @@
-# Project Roadmap
+﻿# Project Roadmap
 
 > Purpose: Define both the long-term strategic direction and the structured execution plan of the on-device Focus Intelligence System.
 >
 > Architecture details live in `ARCHITECTURE.md`.
 > Active execution contracts live in `SCOPE.md`.
-> Strategic pivots are recorded in `DECISIONS.md`.
+> Strategic pivots are recorded in `DECISION.md`.
 
 ---
 
-# Part A — Strategic Direction (Executive Layer)
+# Part A - Strategic Direction (Executive Layer)
 
 ---
 
@@ -26,7 +26,7 @@ into a unified and trustworthy Focus Score.
 
 ## 2. Strategic Outcomes
 
-- ≥90% alignment between Focus Score and user-reported deep-work state
+- Target alignment between Focus Score and user-reported deep-work state
 - Fully local execution (no raw sensitive data persistence)
 - Passive focus detection (reading/watching) without false negatives
 - Transparent and explainable scoring
@@ -36,40 +36,40 @@ into a unified and trustworthy Focus Score.
 
 ## 3. Strategic Epics
 
-### EPIC-01 — Semantic Context Intelligence  
+### EPIC-01 - Semantic Context Intelligence  
 Determine whether user activity aligns with declared deep-work goals.
 
-### EPIC-02 — Behavioral Dynamics Intelligence  
+### EPIC-02 - Behavioral Dynamics Intelligence  
 Model user-specific input patterns to identify focused vs distracted states.
 
-### EPIC-03 — Visual Attention Intelligence  
+### EPIC-03 - Visual Attention Intelligence  
 Validate physical attention presence during active and passive work.
 
-### EPIC-04 — Unified Scoring & Reporting  
+### EPIC-04 - Unified Scoring & Reporting  
 Fuse multi-layer signals into a single actionable Focus Score.
 
-### EPIC-05 — Personalization & Calibration  
+### EPIC-05 - Personalization & Calibration  
 Adapt scoring logic to individual baselines and long-term behavioral drift.
 
 ---
 
 ## 4. Milestone Roadmap (High-Level)
 
-- M-01 — Foundation & Reliable Capture  
-- M-02 — Semantic Intelligence v1  
-- M-03 — Multi-Layer Defense  
-- M-04 — Unified Intelligence & Dashboard  
-- M-05 — Optimization & Personalization  
+- M-01 - Foundation & Reliable Capture  
+- M-02 - Semantic Intelligence v1  
+- M-03 - Multi-Layer Defense  
+- M-04 - Unified Intelligence & Dashboard  
+- M-05 - Optimization & Personalization  
 
 ---
 
-# Part B — Detailed Execution Plan (Operational Layer)
+# Part B - Detailed Execution Plan (Operational Layer)
 
 > This section may evolve without changing strategic direction.
 
 ---
 
-## EPIC-01 — Semantic Context (Detailed)
+## EPIC-01 - Semantic Context (Detailed)
 
 **Goal:** Achieve semantic alignment between declared goals and real-time activity.
 
@@ -88,7 +88,7 @@ Out: Keystroke content logging, cloud NLP
 
 ---
 
-## EPIC-02 — Behavioral Dynamics (Detailed)
+## EPIC-02 - Behavioral Dynamics (Detailed)
 
 **Goal:** Identify behavioral fingerprints of focused states.
 
@@ -103,7 +103,7 @@ Out: Eye tracking (handled separately)
 
 ---
 
-## EPIC-03 — Visual Attention (Detailed)
+## EPIC-03 - Visual Attention (Detailed)
 
 **Goal:** Confirm attention presence during passive tasks.
 
@@ -117,7 +117,7 @@ Out: Video storage
 
 ---
 
-## EPIC-04 — Scoring Engine (Detailed)
+## EPIC-04 - Scoring Engine (Detailed)
 
 **Goal:** Produce unified Focus Score and user insights.
 
@@ -128,7 +128,7 @@ Out: Video storage
 
 ---
 
-## EPIC-05 — Personalization (Detailed)
+## EPIC-05 - Personalization (Detailed)
 
 **Goal:** Adapt scoring to user-specific behavior.
 
@@ -143,7 +143,7 @@ Out: Video storage
 
 ---
 
-## M-01 — Foundation & Smart Save
+## M-01 - Foundation & Smart Save
 
 **Objective:** Build stable event capture infrastructure.
 
@@ -156,7 +156,7 @@ Out: Video storage
 
 ---
 
-## M-02 — Semantic Intelligence v1
+## M-02 - Semantic Intelligence v1
 
 **DoD:**
 - [ ] Goal alignment detection
@@ -165,7 +165,7 @@ Out: Video storage
 
 ---
 
-## M-03 — Behavioral & Visual Defense
+## M-03 - Behavioral & Visual Defense
 
 **DoD:**
 - [ ] Behavioral metrics implemented
@@ -174,7 +174,7 @@ Out: Video storage
 
 ---
 
-## M-04 — Unified Intelligence & Dashboard
+## M-04 - Unified Intelligence & Dashboard
 
 **DoD:**
 - [ ] Final Focus Score
@@ -184,7 +184,7 @@ Out: Video storage
 
 ---
 
-## M-05 — Optimization & Personalization
+## M-05 - Optimization & Personalization
 
 **DoD:**
 - [ ] Baseline calibration mode
@@ -214,5 +214,6 @@ Out: Video storage
 
 # Change Log
 
-- 2026-02-10 — Roadmap restructured into Strategic + Execution layers.
-- 2026-02-03 — Initial roadmap draft created.
+- 2026-02-10 - Roadmap restructured into Strategic + Execution layers.
+- 2026-02-03 - Initial roadmap draft created.
+

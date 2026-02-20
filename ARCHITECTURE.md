@@ -1,4 +1,4 @@
-# System Architecture
+﻿# System Architecture
 
 > Purpose: Define the complete technical architecture of the on-device Focus Intelligence System, including sensing layers, feature extraction logic, scoring fusion, personalization, storage policies, and runtime constraints.
 
@@ -155,7 +155,7 @@ Risks:
 # 6. Scoring & Fusion Engine (EPIC-04)
 
 ## 6.1 Weighted Model (Initial Version)
-Focus Score (0–100) composed of:
+Focus Score (0-100) composed of:
 - 40% Semantic Context
 - 40% Behavioral Dynamics
 - 20% Visual Attention
@@ -176,7 +176,7 @@ Breakdown example:
 
 Provides:
 - Human-readable explanations
-- “Why this score?” UI panel
+- "Why this score?" UI panel
 
 ## 6.4 Focus Leak Report
 - Identifies top 3 distraction apps
@@ -188,7 +188,7 @@ Provides:
 # 7. Personalization & Calibration Layer (EPIC-05)
 
 ## 7.1 Baseline Mode
-- 2–3 day calibration period
+- 2-7 day calibration period
 - Collects behavioral distribution statistics
 - Establishes per-user thresholds
 
@@ -241,11 +241,19 @@ Forbidden:
 - Raw video frames
 - Screen recordings
 
-Recommended Storage:
-- SQLite (scalable queries)
-  or
-- JSONL for early prototype
+Hybrid Storage Strategy:
 
+Canonical Store:
+- JSONL append-only event log
+- Crash-safe
+- Immutable
+- Source of truth
+
+Derived Layer:
+- SQLite aggregate database
+- Optimized for dashboard queries
+- Fully reconstructible from JSONL
+- May be dropped and rebuilt at any time
 ---
 
 # 10. Cross-Platform & Build
@@ -261,18 +269,18 @@ Recommended Storage:
 
 # 11. Failure Handling
 
-- Permission denied → degrade gracefully
-- Model load failure → fallback to heuristic classification
-- CPU spike → reduce sampling rate
-- Vision disabled → redistribute weight to semantic/dynamics
+- Permission denied -> degrade gracefully
+- Model load failure -> fallback to heuristic classification
+- CPU spike -> reduce sampling rate
+- Vision disabled -> redistribute weight to semantic/dynamics
 
 ---
 
 # 12. Open Technical Decisions
 
 - ONNX vs lightweight JS embedding model?
-- SQLite vs JSONL?
 - Electron vs background daemon?
 - Sampling strategy tuning?
 - Model quantization for memory reduction?
+
 

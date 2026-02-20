@@ -1,104 +1,67 @@
-## D-003 — Local Storage Engine: SQLite
+﻿# DECISION LOG
+
+This document records architectural and strategic decisions.
+INTERFACES.md defines system contracts.
+ARCHITECTURE.md defines technical implementation.
+This file records why decisions were made.
+
+---
+
+## D-003 - SQLite as Primary Storage (Deprecated)
 
 **Date:** 2026-02-12  
+**Status:** Superseded  
+**Superseded By:** D-006  
+
+### Original Decision
+Adopt SQLite as the primary local storage engine.
+
+### Reason for Supersession
+System crash safety and long-term rebuildability require an append-only canonical event log.
+Analytics and aggregation needs still justify SQLite, but not as the source of truth.
+
+---
+
+## D-006 - Hybrid Storage Architecture
+
+**Date:** 2026-02-17  
 **Status:** Approved  
-**Superseded By:** D-006 — Hybrid Storage (JSONL Source of Truth + SQLite Aggregates)
----
-
-### Context
-
-The system requires structured local persistence for:
-
-- Event capture logs
-- Derived feature records
-- Focus score history
-- Calibration parameters
-- Long-session stability
-
-The storage layer must support:
-- Efficient querying for analytics (daily/weekly reports)
-- Log integrity under long-running sessions
-- Controlled file growth
-- Low overhead
-- On-device only operation
-
----
-
-### Options Considered
-
-#### Option A — JSONL (Append-only log files)
-
-Pros:
-- Extremely simple to implement
-- Human-readable
-- Good for early prototyping
-
-Cons:
-- Difficult to query for analytics
-- Requires full-file scans for aggregation
-- Harder to manage file growth
-- Risk of corrupted entries during crashes
-- No indexing support
-
----
-
-#### Option B — SQLite (Embedded Relational Database)
-
-Pros:
-- ACID-compliant (safe writes)
-- Structured schema enforcement
-- Efficient indexed queries
-- Suitable for long-term analytics
-- Handles file growth gracefully
-- Native Node.js support
-
-Cons:
-- Slightly more setup complexity
-- Requires schema design
-- Minor overhead compared to plain append logs
-
----
 
 ### Decision
 
-Adopt **SQLite** as the primary local storage engine.
+Adopt a Hybrid Storage Model:
 
-Rationale:
-- Long-term scalability outweighs minimal setup complexity.
-- Efficient analytics and trend queries are essential for dashboard and reporting.
-- ACID guarantees reduce risk of corrupted logs during crashes.
-- Aligns with long-term personalization and drift detection requirements.
+- JSONL = Canonical append-only event store
+- SQLite = Derived aggregate database
+- SQLite MUST be fully reconstructible from JSONL
+- JSONL is the single source of truth
 
----
+### Rationale
 
-### Impact
+1. Append-only logs maximize crash safety
+2. JSONL allows auditability and replay
+3. SQLite enables efficient aggregation queries
+4. Supports long-session analytics without sacrificing durability
+5. Enables future ML replay, recalibration, and drift detection
 
-Affects:
-- M-01 (Foundation & Smart Save)
-- ARCHITECTURE.md — Storage Strategy section
-- Future Dashboard querying logic
-- Personalization & Drift Detection layer
+### Architecture Rules
 
-Performance Impact:
-- Negligible for aggregated metric storage.
-- Indexed queries will significantly improve dashboard performance.
+- All raw events MUST be written to JSONL first
+- SQLite writes MUST be derived from JSONL ingestion
+- No data may exist exclusively in SQLite
+- If SQLite becomes corrupted, it MUST be rebuildable
 
-Privacy Impact:
-- No change (data remains fully local).
-- Sensitive raw data still forbidden from persistence.
+### Impacted Documents
 
----
+- INTERFACES.md (Canonical store definition)
+- ARCHITECTURE.md (Storage Strategy section)
+- SCOPE.md (Remove "choose one" wording)
 
-### Rollback Plan
+### Migration Required
 
-If SQLite introduces unexpected performance overhead:
-
-1. Switch to append-only JSONL for raw event logs.
-2. Maintain SQLite only for derived features and scores.
-3. Re-evaluate hybrid architecture.
+Yes - remove ambiguity in storage strategy across documentation.
 
 ---
 
-### Approved By
-
+Approved By  
 CTO

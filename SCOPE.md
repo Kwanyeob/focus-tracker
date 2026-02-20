@@ -1,4 +1,4 @@
-# Active Scope — SCOPE-Foundation-M01
+﻿# Active Scope - SCOPE-Foundation-M01
 
 > This scope defines the foundational infrastructure required for reliable and privacy-safe event capture.
 > No AI, no scoring, no UI beyond debugging utilities.
@@ -7,7 +7,7 @@
 
 ## 1. Context
 
-- Driven Milestone(s): M-01 — Foundation & Smart Save
+- Driven Milestone(s): M-01 - Foundation & Smart Save
 - Related Epic(s): EPIC-01 (Infrastructure prerequisite)
 - Strategic Goal: Build a stable, lossless, low-overhead data capture layer.
 
@@ -42,7 +42,8 @@ Only the following components are allowed:
 
 ### Schema & Storage
 - [ ] Define stable log schema
-- [ ] Implement JSONL or SQLite storage (choose one)
+- [ ] Implement JSONL canonical storage
+- [ ] Implement optional SQLite aggregate layer (derived only)
 - [ ] Log rotation strategy (prevent file growth issues)
 
 ### Stability & Safety
@@ -62,15 +63,15 @@ Only the following components are allowed:
 
 The following are strictly forbidden in this scope:
 
-- ❌ Sentence-BERT integration
-- ❌ Cosine similarity
-- ❌ MediaPipe
-- ❌ Scoring logic
-- ❌ Dashboard UI
-- ❌ Personalization
-- ❌ Drift detection
-- ❌ Weight tuning
-- ❌ Optimization beyond stability fixes
+- Sentence-BERT integration
+- Cosine similarity
+- MediaPipe
+- Scoring logic
+- Dashboard UI
+- Personalization
+- Drift detection
+- Weight tuning
+- Optimization beyond stability fixes
 
 If not listed in "In Scope", it is out of scope.
 
@@ -122,6 +123,7 @@ CTO must confirm:
 - [ ] No hidden technical debt introduced
 
 Status:
-☐ Approved  
-☐ Needs Revision  
-☐ Rejected
+- [ ] Approved  
+- [ ] Needs Revision  
+- [ ] Rejected
+
