@@ -1,0 +1,42 @@
+{
+  "name": "focus-tracker",
+  "version": "0.1.0",
+  "description": "FocusScope on-device focus intelligence system",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --testPathPattern=\"test/\" --forceExit",
+    "test:unit": "jest --testPathPattern=\"test/\" --forceExit",
+    "soak": "npx ts-node scripts/soak/jsonl_soak_test.ts"
+  },
+  "dependencies": {
+    "active-win": "^7.7.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.ts",
+      "**/test/**/*.test.js"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.json"
+        }
+      ]
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/"
+    ]
+  }
+}

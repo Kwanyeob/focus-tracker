@@ -1,0 +1,140 @@
+version: 1
+project: FocusScope
+change_set: "M-01 JSONL foundation (INTERFACES.md compliant)"
+
+context_files:
+  - docs/architecture.md
+  - docs/decisions.md
+  - docs/interface.md
+  - docs/roadmap.md
+  - docs/scope.md
+
+work_items:
+  - id: M-01
+    title: "JSONL foundation: EventRecord + jsonlWriter + checkpoint + recovery + 2h soak test"
+    status: planned
+    priority: P0
+    owner: agent
+    task_file: spec/tasks/M-01-jsonl-foundation.md
+
+    scope:
+      add_files:
+        - src/storage/eventRecord.ts
+        - src/storage/sessionManager.ts
+        - src/storage/jsonlWriter.ts
+        - src/storage/checkpoint.ts
+        - src/storage/recovery.ts
+        - scripts/soak/jsonl_soak_test.ts
+        - test/jsonlWriter.test.ts
+        - test/checkpoint.test.ts
+        - test/recovery.test.ts
+      modify_files: []
+      exclude:
+        - "sqlite implementation"
+        - "cloud sync"
+        - "compression"
+        - "indexing"
+
+    runtime_assumptions:
+      language: "TypeScript (Node.js)"
+      persistence: "local filesystem only"
+      format: "JSONL append-only"
+      concurrency: "single-process, serialized appends"
+
+    implementation_constraints:
+      - "INTERFACES.md takes precedence on naming/fields"
+      - "Records must be 1 JSON object per line; no partial lines allowed"
+      - "Checkpoint writes must be atomic via tmp + fsync + rename"
+      - "After rename, directory should be fsync'ed if platform allows"
+      - "Recovery must handle corrupted/partial last line via safe truncation"
+      - "JSONL is source of truth; checkpoint must never override JSONL"
+      - "jsonlWriter constructor must automatically execute recovery before first append"
+      - "recoverIfNeeded remains public for testing only; callers must not be required to invoke it"
+      - "Rotation: events-YYYYMMDD.jsonl and .N suffix when size-rotated (events-YYYYMMDD.1.jsonl, .2, ...)"
+      - "Session: new session_id per process start; seq starts at 0 per session and increments by exactly 1"
+      - "timezone_offset required (minutes from UTC)"
+      - "monotonic_ms required and must not be bigint"
+      - "monotonic_ms must be derived from process.hrtime.bigint() and converted to number milliseconds (Number(hrtime/1000000n)) or string before JSON serialization"
+      - "Use crypto.randomUUID() for event_id and session_id random component; do not add external uuid dependency"
+
+    acceptance:
+      tests:
+        - name: "unit"
+          command: "npm test"
+          must_pass: true
+        - name: "soak_2h"
+          command: "node scripts/soak/jsonl_soak_test.ts"
+          must_pass: true
+
+      success_criteria:
+        - "All unit tests pass"
+        - "Soak test runs for ~2 hours without corruption (or recovers correctly after intentional crashes)"
+        - "JSONL output is parseable line-by-line (no JSON parse errors)"
+        - "seq strictly monotonic per session; no duplicates"
+        - "After recovery, checkpoint last_flushed_seq matches JSONL tail seq"
+        - "Rotation produces correctly named files and preserves all flushed records"
+
+    output_requirements_for_agent:
+      - "Provide file-by-file summary of edits/additions"
+      - "Provide commands to run unit tests and soak test"
+      - "Explain any assumptions if repo layout differs"
+      - "Do not change unrelated code paths"
+
+  - id: M-02-AW
+    title: "Active Window Tracking (Privacy-Safe)"
+    status: planned
+    priority: P0
+    owner: agent
+    task_file: spec/tasks/M-02-active-window.md
+
+    scope:
+      add_files:
+        - capture/activeWindow.js
+        - test/activeWindow.test.js
+      modify_files: []
+      exclude:
+        - "input aggregation"
+        - "scoring"
+        - "semantic classification"
+        - "SQLite changes"
+        - "UI changes"
+
+    runtime_assumptions:
+      language: "Node.js (CommonJS)"
+      os_support: "Windows + macOS"
+      dependency:
+        - "active-win"
+      persistence: "Existing JSONL writer"
+
+    implementation_constraints:
+      - "Must comply with INTERFACES.md EventRecordV1 schema"
+      - "window_title MUST be sanitized before persistence"
+      - "No raw URLs, no raw emails, no raw file paths"
+      - "monotonic_ms must be derived from process.hrtime.bigint() and converted to number"
+      - "schema_version must be string (e.g. '1.0.0')"
+      - "event_id must use crypto.randomUUID()"
+      - "No external uuid library"
+      - "Polling default interval: 1000ms"
+      - "Change detection must compare app_name + sanitized window_title"
+      - "Must not emit duplicate events if unchanged"
+      - "Must handle null active window safely"
+      - "Max window_title length 512 chars"
+
+    acceptance:
+      tests:
+        - name: "unit"
+          command: "npm test"
+          must_pass: true
+
+      success_criteria:
+        - "Window change correctly detected"
+        - "No duplicate emits when unchanged"
+        - "Sanitized window title persisted"
+        - "No raw URL stored"
+        - "CPU usage acceptable under 2-hour run"
+        - "No memory leak"
+
+    output_requirements_for_agent:
+      - "Provide full code for new files"
+      - "Provide test instructions"
+      - "Do not modify unrelated modules"
