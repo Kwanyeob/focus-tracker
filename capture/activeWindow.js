@@ -42,7 +42,7 @@ try {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SCHEMA_VERSION = '1.0.0';
+const SCHEMA_VERSION = '1.1.0';
 const MAX_TITLE_LENGTH = 512;
 const DEFAULT_INTERVAL_MS = 1000;
 
@@ -176,6 +176,12 @@ let _watcherTimer = null;
  */
 let _lastWindowKey = null;
 
+/**
+ * Optional InputAggregator instance active during the current watcher session.
+ * Flushed before each window change, stopped on watcher stop.
+ */
+let _currentAggregator = null;
+
 // ─── Core API ─────────────────────────────────────────────────────────────────
 
 /**
@@ -253,12 +259,21 @@ async function getActiveWindow() {
  *   - Calls onChange(windowData) on change
  *   - Optionally calls appendEventRecord(record) to persist an EventRecordV1
  *
+ * M-03 extensions:
+ *   - inputAggregator: optional InputAggregator instance; if provided it is
+ *     flushed (emitting an input_summary) before each window change and driven
+ *     by a periodic flush timer for the lifetime of the watcher.
+ *   - inputFlushIntervalMs: periodic flush interval (default: aggregator's
+ *     DEFAULT_FLUSH_INTERVAL_MS).
+ *
  * If the watcher is already running, the existing one is stopped first.
  *
  * @param {{
  *   interval_ms?: number,
  *   onChange?: function,
- *   appendEventRecord?: function
+ *   appendEventRecord?: function,
+ *   inputAggregator?: object,
+ *   inputFlushIntervalMs?: number
  * }} options
  */
 function startActiveWindowWatcher(options) {
@@ -275,14 +290,27 @@ function startActiveWindowWatcher(options) {
   const appendEventRecord =
     typeof options.appendEventRecord === 'function' ? options.appendEventRecord : null;
 
-  // Stop any existing watcher before starting a new one
-  if (_watcherTimer !== null) {
-    clearInterval(_watcherTimer);
-    _watcherTimer = null;
-  }
+  // Accept an InputAggregator instance via duck-typing (no import needed)
+  const inputAggregator =
+    (options.inputAggregator &&
+     typeof options.inputAggregator.flush === 'function' &&
+     typeof options.inputAggregator.setActiveWindow === 'function')
+      ? options.inputAggregator
+      : null;
+
+  // Stop any existing watcher (and its aggregator) before starting a new one
+  stopActiveWindowWatcher();
 
   // Reset change-detection state so first poll always fires onChange if a window exists
   _lastWindowKey = null;
+
+  // Store aggregator reference for stopActiveWindowWatcher
+  _currentAggregator = inputAggregator;
+
+  // Start periodic flush for the aggregator (only if we also have a writer)
+  if (_currentAggregator && appendEventRecord) {
+    _currentAggregator.startPeriodicFlush(appendEventRecord, options.inputFlushIntervalMs);
+  }
 
   _watcherTimer = setInterval(async () => {
     let windowData;
@@ -304,7 +332,14 @@ function startActiveWindowWatcher(options) {
 
     _lastWindowKey = windowKey;
 
-    // Notify listener first
+    // Step 1: Flush pending input_summary BEFORE emitting the new active_window.
+    // This preserves the invariant that input_summary.active_window_id always
+    // references the window during which the input occurred.
+    if (_currentAggregator && appendEventRecord) {
+      _currentAggregator.flush(appendEventRecord);
+    }
+
+    // Step 2: Notify listener
     if (onChange) {
       try {
         onChange(windowData);
@@ -313,11 +348,16 @@ function startActiveWindowWatcher(options) {
       }
     }
 
-    // Persist if a writer is provided
+    // Step 3: Persist active_window event and update aggregator reference
     if (appendEventRecord) {
       try {
         const record = _buildEventRecord(windowData);
         appendEventRecord(record);
+        // Step 4: Tell the aggregator which window is now active so future
+        // input_summary records carry the correct active_window_id.
+        if (_currentAggregator) {
+          _currentAggregator.setActiveWindow(record.event_id, record.monotonic_ms);
+        }
       } catch (err) {
         console.error('[activeWindow] appendEventRecord error:', err.message);
       }
@@ -329,6 +369,7 @@ function startActiveWindowWatcher(options) {
  * Stops the active window watcher and releases all references.
  *
  * Per spec: clears interval, releases references, prevents memory leaks.
+ * Also stops any InputAggregator periodic flush timer if one is attached.
  * Safe to call multiple times.
  */
 function stopActiveWindowWatcher() {
@@ -336,25 +377,32 @@ function stopActiveWindowWatcher() {
     clearInterval(_watcherTimer);
     _watcherTimer = null;
   }
+  if (_currentAggregator) {
+    _currentAggregator.stopPeriodicFlush();
+    _currentAggregator = null;
+  }
   _lastWindowKey = null;
 }
 
 // ─── EventRecordV1 Builder ────────────────────────────────────────────────────
 
 /**
- * Constructs an EventRecordV1-compliant record for a WINDOW_CHANGE event.
+ * Constructs an `active_window` event record (schema_version 1.1.0).
  *
- * Fields per INTERFACES.md §3A:
- *   schema_version, event_id, created_at, timezone_offset, monotonic_ms,
- *   session_id, timestamp, app_name, window_title, bundle_id?, process_name?,
- *   key_count, click_count, mouse_distance, scroll_delta, idle_ms,
- *   dwell_time_ms, trigger_reason
+ * This event is purely contextual — it records a window/application change.
+ * Input metrics are intentionally absent; they belong in `input_summary`
+ * events emitted by InputAggregator (M-03-AW-FIX).
  *
- * Additional field `seq` is included for JSONL ordering and recovery
- * (extra fields are ignored by readers per INTERFACES.md §0).
+ * Required fields:
+ *   type, schema_version, event_id, session_id, seq, created_at,
+ *   timezone_offset, timestamp, monotonic_ms, app_name, window_title,
+ *   trigger_reason
+ *
+ * Optional fields (when present in windowData):
+ *   bundle_id, process_name
  *
  * event_id uses crypto.randomUUID() — no external uuid dependency.
- * monotonic_ms is already set from the windowData (captured at poll time).
+ * monotonic_ms is captured at poll time (not at record construction time).
  *
  * @param {{
  *   timestamp: number,
@@ -364,30 +412,25 @@ function stopActiveWindowWatcher() {
  *   bundle_id?: string,
  *   process_name?: string
  * }} windowData - Sanitized window data from getActiveWindow()
- * @returns {object} EventRecordV1-compliant record
+ * @returns {object} active_window event record
  */
 function _buildEventRecord(windowData) {
   const now = new Date();
 
   /** @type {object} */
   const record = {
-    schema_version: SCHEMA_VERSION,
-    event_id: crypto.randomUUID(),
-    session_id: _SESSION_ID,
-    seq: _seq++,                          // internal ordering field
-    created_at: now.toISOString(),        // ISO-8601 UTC
-    timezone_offset: -now.getTimezoneOffset(), // minutes from UTC
-    timestamp: windowData.timestamp,      // epoch ms from poll time
-    monotonic_ms: windowData.monotonic_ms, // monotonic clock from poll time
-    app_name: windowData.app_name,
-    window_title: windowData.window_title, // ALREADY sanitized
-    key_count: 0,
-    click_count: 0,
-    mouse_distance: 0,
-    scroll_delta: 0,
-    idle_ms: 0,
-    dwell_time_ms: 0,
-    trigger_reason: 'WINDOW_CHANGE',
+    schema_version:  SCHEMA_VERSION,
+    type:            'active_window',
+    event_id:        crypto.randomUUID(),
+    session_id:      _SESSION_ID,
+    seq:             _seq++,                          // internal ordering field
+    created_at:      now.toISOString(),               // ISO-8601 UTC
+    timezone_offset: -now.getTimezoneOffset(),        // minutes from UTC
+    timestamp:       windowData.timestamp,            // epoch ms from poll time
+    monotonic_ms:    windowData.monotonic_ms,         // monotonic clock from poll time
+    app_name:        windowData.app_name,
+    window_title:    windowData.window_title,         // ALREADY sanitized
+    trigger_reason:  'WINDOW_CHANGE',
   };
 
   // Optional fields

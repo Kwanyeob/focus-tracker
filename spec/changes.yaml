@@ -138,3 +138,75 @@ work_items:
       - "Provide full code for new files"
       - "Provide test instructions"
       - "Do not modify unrelated modules"
+  - id: M-03-AW-FIX
+    title: Active Window Capture Fix (separate context vs input metrics)
+    type: refactor
+    status: proposed
+    owner: core
+    priority: high
+    depends_on:
+      - M-02-AW
+    docs:
+      spec_md: spec/tasks/M-03-active-window-capture-fix.md
+
+    summary:
+      - Split WINDOW_CHANGE logging into two event types: active_window and input_summary
+      - Remove input metrics from active_window events to eliminate zero-value spam
+      - Aggregate input metrics periodically and/or flush on window change
+      - Ensure duration calculations use monotonic_ms (not wall-clock)
+
+    changes:
+      schema:
+        - add_field: type
+          to: events
+          required: true
+        - add_event_type: active_window
+        - add_event_type: input_summary
+        - add_field: active_window_id
+          to: input_summary
+          required: true
+        - remove_fields_from_event:
+            event_type: active_window
+            fields:
+              - key_count
+              - click_count
+              - mouse_distance
+              - scroll_delta
+              - idle_ms
+              - dwell_time_ms
+      runtime:
+        - on_window_change:
+            - flush_input_summary_if_dirty: true
+            - emit_active_window: true
+        - periodic_input_flush_seconds:
+            min: 5
+            max: 30
+        - dwell_time_calculation:
+            method: monotonic_ms_delta
+            formula: "next_active_window.monotonic_ms - current_active_window.monotonic_ms"
+
+    files:
+      add:
+        - spec/tasks/M-03-active-window-capture-fix.md
+      modify:
+        - src/activeWindow/activeWindowCapture.js
+        - src/input/inputAggregator.js
+        - src/pipeline/eventWriter.js
+        - src/schemas/event.schema.json
+        - src/schemas/schema_version.json
+      optional_modify:
+        - src/utils/windowTitleNormalize.js
+
+    acceptance_criteria:
+      - "active_window events MUST NOT include key_count/click_count/mouse_distance/scroll_delta/idle_ms/dwell_time_ms"
+      - "input_summary events MUST include aggregated input metrics and reference active_window_id"
+      - "No meaningless zero-value spam (avoid flushing empty input_summary records)"
+      - "Dwell time MUST be computable using monotonic_ms deltas"
+      - "New events MUST include `type` field; legacy parsing remains supported during migration"
+
+    migration:
+      strategy: dual_parse
+      notes:
+        - "Legacy events remain readable"
+        - "Analytics layer supports both legacy and new typed events during transition"
+        - "Plan deprecation of legacy format in a later change item"

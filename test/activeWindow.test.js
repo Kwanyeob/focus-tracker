@@ -370,8 +370,9 @@ describe('startActiveWindowWatcher', () => {
     expect(appendEventRecord).toHaveBeenCalledTimes(1);
     const record = appendEventRecord.mock.calls[0][0];
 
-    // EventRecordV1 required fields (INTERFACES.md §3A)
-    expect(record.schema_version).toBe('1.0.0');
+    // active_window event required fields (schema 1.1.0)
+    expect(record.schema_version).toBe('1.1.0');
+    expect(record.type).toBe('active_window');
     expect(typeof record.event_id).toBe('string');
     expect(record.event_id.trim()).not.toBe('');
     expect(typeof record.session_id).toBe('string');
@@ -384,13 +385,14 @@ describe('startActiveWindowWatcher', () => {
     expect(record.monotonic_ms).toBeGreaterThanOrEqual(0);
     expect(record.app_name).toBe('Slack');
     expect(typeof record.window_title).toBe('string');
-    expect(record.key_count).toBe(0);
-    expect(record.click_count).toBe(0);
-    expect(record.mouse_distance).toBe(0);
-    expect(record.scroll_delta).toBe(0);
-    expect(record.idle_ms).toBe(0);
-    expect(record.dwell_time_ms).toBe(0);
     expect(record.trigger_reason).toBe('WINDOW_CHANGE');
+    // Input metrics MUST NOT be present on active_window events (M-03-AW-FIX)
+    expect(record).not.toHaveProperty('key_count');
+    expect(record).not.toHaveProperty('click_count');
+    expect(record).not.toHaveProperty('mouse_distance');
+    expect(record).not.toHaveProperty('scroll_delta');
+    expect(record).not.toHaveProperty('idle_ms');
+    expect(record).not.toHaveProperty('dwell_time_ms');
   });
 
   test('does NOT call appendEventRecord for duplicate windows', async () => {
@@ -486,10 +488,11 @@ describe('_buildEventRecord', () => {
     process_name: 'testapp',
   };
 
-  test('produces all required EventRecordV1 fields', () => {
+  test('produces all required active_window event fields', () => {
     const record = _buildEventRecord(sampleWindowData);
 
-    expect(record.schema_version).toBe('1.0.0');
+    expect(record.schema_version).toBe('1.1.0');
+    expect(record.type).toBe('active_window');
     expect(typeof record.event_id).toBe('string');
     expect(record.event_id.trim()).not.toBe('');
     expect(typeof record.session_id).toBe('string');
@@ -506,13 +509,14 @@ describe('_buildEventRecord', () => {
     expect(record.window_title).toBe('sanitized title');
     expect(record.bundle_id).toBe('com.test.app');
     expect(record.process_name).toBe('testapp');
-    expect(record.key_count).toBe(0);
-    expect(record.click_count).toBe(0);
-    expect(record.mouse_distance).toBe(0);
-    expect(record.scroll_delta).toBe(0);
-    expect(record.idle_ms).toBe(0);
-    expect(record.dwell_time_ms).toBe(0);
     expect(record.trigger_reason).toBe('WINDOW_CHANGE');
+    // Input metrics MUST NOT be present on active_window events (M-03-AW-FIX)
+    expect(record).not.toHaveProperty('key_count');
+    expect(record).not.toHaveProperty('click_count');
+    expect(record).not.toHaveProperty('mouse_distance');
+    expect(record).not.toHaveProperty('scroll_delta');
+    expect(record).not.toHaveProperty('idle_ms');
+    expect(record).not.toHaveProperty('dwell_time_ms');
   });
 
   test('event_id is a valid UUID v4 format', () => {
