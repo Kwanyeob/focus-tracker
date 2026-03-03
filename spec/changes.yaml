@@ -210,3 +210,168 @@ work_items:
         - "Legacy events remain readable"
         - "Analytics layer supports both legacy and new typed events during transition"
         - "Plan deprecation of legacy format in a later change item"
+  - id: M-04-DWELL
+    title: Dwell Time Engine (window-level duration calculation)
+    type: feature
+    status: proposed
+    owner: core
+    priority: high
+    depends_on:
+      - M-03-AW-FIX
+    docs:
+      spec_md: spec/tasks/M-04-dwell-time-engine.md
+
+    summary:
+      - Compute dwell time between consecutive active_window events
+      - Emit window_dwell derived event
+      - Use monotonic_ms for duration calculation
+      - Ensure crash-safe window closure
+
+    changes:
+      schema:
+        - add_event_type: window_dwell
+        - add_field: window_event_id
+        - add_field: start_monotonic_ms
+        - add_field: end_monotonic_ms
+        - add_field: dwell_time_ms
+
+      runtime:
+        - on_active_window_emit:
+            - compute_previous_dwell: true
+            - emit_window_dwell: true
+        - ensure_no_unclosed_window: true
+        - duration_method: monotonic_delta
+
+    files:
+      add:
+        - src/engine/dwellEngine.js
+      modify:
+        - src/activeWindow/activeWindowCapture.js
+        - src/pipeline/eventWriter.js
+        - src/schemas/event.schema.json
+        - src/schemas/schema_version.json
+
+    acceptance_criteria:
+      - "Each active_window generates exactly one window_dwell (except open window)"
+      - "dwell_time_ms computed using monotonic_ms only"
+      - "No negative durations"
+      - "System handles restart without orphan dwell sessions"
+  - id: M-05-SQLITE
+    title: Local Storage Engine (SQLite)
+    type: feature
+    status: proposed
+    owner: core
+    priority: high
+    depends_on:
+      - M-03-AW-FIX
+      - M-04-DWELL
+    docs:
+      spec_md: spec/tasks/M-05-local-storage-sqlite.md
+
+    summary:
+      - Persist all events to SQLite (events_raw)
+      - Add derived tables for window_dwell and input_summary
+      - Enable fast local queries for analytics and ML export
+
+    changes:
+      schema:
+        - add_table: events_raw
+        - add_table: window_dwell
+        - add_table: input_summary
+        - add_table: schema_version
+      runtime:
+        - event_writer_target: sqlite
+        - wal_mode: true
+        - migration_support: true
+
+    files:
+      add:
+        - spec/tasks/M-05-local-storage-sqlite.md
+        - src/storage/sqlite/db.js
+        - src/storage/sqlite/migrations/001_init.sql
+        - src/storage/sqlite/repository.js
+      modify:
+        - src/pipeline/eventWriter.js
+        - src/schemas/event.schema.json
+        - src/schemas/schema_version.json
+
+    acceptance_criteria:
+      - "All events are inserted into events_raw"
+      - "window_dwell and input_summary are inserted into derived tables"
+      - "Can query dwell totals by app/category for a given local day"
+      - "DB is created and migrated automatically on startup"
+
+  - id: M-06-FEATURES
+    title: Feature Builder (30s ML-ready features)
+    type: feature
+    status: proposed
+    owner: core
+    priority: high
+    depends_on:
+      - M-05-SQLITE
+    docs:
+      spec_md: spec/tasks/M-06-feature-builder.md
+
+    summary:
+      - Generate fixed-window (30s) features from dwell + input summaries
+      - Write features to SQLite for ML training and reporting
+      - Support app category mapping and overlap-aware dwell allocation
+
+    changes:
+      schema:
+        - add_table: features_30s
+      runtime:
+        - feature_window_seconds: 30
+        - idempotent_feature_build: true
+        - category_mapping_config: true
+
+    files:
+      add:
+        - spec/tasks/M-06-feature-builder.md
+        - src/features/categoryMap.js
+        - src/features/featureBuilder.js
+        - src/storage/sqlite/migrations/002_features_30s.sql
+      modify:
+        - src/cli/index.js
+
+    acceptance_criteria:
+      - "features_30s is generated continuously for recorded sessions"
+      - "sum(category_ms) approximately equals window size"
+      - "idle_ratio is within [0,1]"
+      - "Re-running builder does not duplicate rows"
+
+  - id: M-07-REPORTS
+    title: Reporting MVP (daily/weekly CLI)
+    type: feature
+    status: proposed
+    owner: core
+    priority: medium
+    depends_on:
+      - M-05-SQLITE
+      - M-06-FEATURES
+    docs:
+      spec_md: spec/tasks/M-07-reporting-mvp.md
+
+    summary:
+      - CLI daily report (category totals, top apps, context switches)
+      - Weekly summary and trend output
+      - Rule-based deep work candidate blocks from features_30s
+
+    changes:
+      runtime:
+        - cli_reports: true
+        - local_day_boundaries: true
+        - json_output_mode: true
+
+    files:
+      add:
+        - spec/tasks/M-07-reporting-mvp.md
+        - src/reports/dailyReport.js
+        - src/reports/weeklyReport.js
+      modify:
+        - src/cli/index.js
+
+    acceptance_criteria:
+      - "Daily report shows category totals, top apps, deep work blocks"
+      - "Uses local day boundaries (timezone_offset-aware)"
+      - "Supports --json output for integration"    

@@ -1,0 +1,270 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1772500413035,
+  "projectRoot": "C:\\Users\\정관엽\\Desktop\\focus-tracker",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "jest",
+        "version": "29.7.0",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {
+      "build": "tsc",
+      "test": "jest --testPathPattern=\"test/\" --forceExit",
+      "test:unit": "jest --testPathPattern=\"test/\" --forceExit",
+      "soak": "npx ts-node scripts/soak/jsonl_soak_test.ts"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "scripts",
+      "spec",
+      "src",
+      "test"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "agents": {
+      "path": "agents",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1772500412984,
+      "keyFiles": []
+    },
+    "capture": {
+      "path": "capture",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1772500412985,
+      "keyFiles": [
+        "activeWindow.js",
+        "activeWindowWin.js",
+        "dwellEngine.js",
+        "getActiveWindow.ps1",
+        "inputAggregator.js"
+      ]
+    },
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 1,
+      "lastAccessed": 1772500412997,
+      "keyFiles": [
+        "demo-events.jsonl"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 5,
+      "lastAccessed": 1772500412998,
+      "keyFiles": [
+        "ARCHITECTURE.md",
+        "DECISION.md",
+        "INTERFACES.md",
+        "ROADMAP.md",
+        "SCOPE.md"
+      ]
+    },
+    "persistence": {
+      "path": "persistence",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1772500412999,
+      "keyFiles": [
+        "checkpoint.js",
+        "ingestionWorker.js",
+        "jsonlWriter.js",
+        "sqliteStore.js"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1772500412999,
+      "keyFiles": [
+        "demo-active-window.js"
+      ]
+    },
+    "spec": {
+      "path": "spec",
+      "purpose": "Test specifications",
+      "fileCount": 1,
+      "lastAccessed": 1772500412999,
+      "keyFiles": [
+        "changes.yaml"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1772500413000,
+      "keyFiles": []
+    },
+    "test": {
+      "path": "test",
+      "purpose": "Test files",
+      "fileCount": 6,
+      "lastAccessed": 1772500413000,
+      "keyFiles": [
+        "activeWindow.test.js",
+        "checkpoint.test.ts",
+        "dwellEngine.test.js",
+        "inputAggregator.test.js",
+        "jsonlWriter.test.ts"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "package.json",
+      "accessCount": 3,
+      "lastAccessed": 1772500947833,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 2,
+      "lastAccessed": 1772500434020,
+      "type": "directory"
+    },
+    {
+      "path": "spec\\changes.yaml",
+      "accessCount": 1,
+      "lastAccessed": 1772500421239,
+      "type": "file"
+    },
+    {
+      "path": "spec\\tasks\\M-05-local-storage-sqlite.md",
+      "accessCount": 1,
+      "lastAccessed": 1772500422993,
+      "type": "file"
+    },
+    {
+      "path": "spec\\tasks\\M-07-reporting-mvp.md",
+      "accessCount": 1,
+      "lastAccessed": 1772500427964,
+      "type": "file"
+    },
+    {
+      "path": "capture\\activeWindow.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500428362,
+      "type": "file"
+    },
+    {
+      "path": "capture\\dwellEngine.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500428699,
+      "type": "file"
+    },
+    {
+      "path": "capture\\inputAggregator.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500437534,
+      "type": "file"
+    },
+    {
+      "path": "src\\storage\\sqlite\\migrations\\001_init.sql",
+      "accessCount": 1,
+      "lastAccessed": 1772500720271,
+      "type": "file"
+    },
+    {
+      "path": "src\\storage\\sqlite\\migrations\\002_features_30s.sql",
+      "accessCount": 1,
+      "lastAccessed": 1772500723995,
+      "type": "file"
+    },
+    {
+      "path": "src\\storage\\sqlite\\db.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500746360,
+      "type": "file"
+    },
+    {
+      "path": "src\\storage\\sqlite\\repository.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500774924,
+      "type": "file"
+    },
+    {
+      "path": "src\\pipeline\\eventWriter.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500792445,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\categoryMap.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500834554,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\featureBuilder.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500873487,
+      "type": "file"
+    },
+    {
+      "path": "src\\reports\\dailyReport.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500901747,
+      "type": "file"
+    },
+    {
+      "path": "src\\reports\\weeklyReport.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500911006,
+      "type": "file"
+    },
+    {
+      "path": "src\\cli\\index.js",
+      "accessCount": 1,
+      "lastAccessed": 1772500939142,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

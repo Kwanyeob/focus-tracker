@@ -182,6 +182,18 @@ let _lastWindowKey = null;
  */
 let _currentAggregator = null;
 
+/**
+ * Optional DwellEngine instance active during the current watcher session.
+ * Receives each new active_window record and emits window_dwell events.
+ */
+let _currentDwellEngine = null;
+
+/**
+ * The appendEventRecord function supplied to startActiveWindowWatcher.
+ * Stored so stopActiveWindowWatcher can pass it to dwellEngine.flushFinal().
+ */
+let _currentAppendFn = null;
+
 // ─── Core API ─────────────────────────────────────────────────────────────────
 
 /**
@@ -298,14 +310,24 @@ function startActiveWindowWatcher(options) {
       ? options.inputAggregator
       : null;
 
+  // Accept a DwellEngine instance via duck-typing (no import needed)
+  const dwellEngine =
+    (options.dwellEngine &&
+     typeof options.dwellEngine.onActiveWindow === 'function' &&
+     typeof options.dwellEngine.flushFinal === 'function')
+      ? options.dwellEngine
+      : null;
+
   // Stop any existing watcher (and its aggregator) before starting a new one
   stopActiveWindowWatcher();
 
   // Reset change-detection state so first poll always fires onChange if a window exists
   _lastWindowKey = null;
 
-  // Store aggregator reference for stopActiveWindowWatcher
-  _currentAggregator = inputAggregator;
+  // Store aggregator and dwell engine references for stopActiveWindowWatcher
+  _currentAggregator  = inputAggregator;
+  _currentDwellEngine = dwellEngine;
+  _currentAppendFn    = appendEventRecord;
 
   // Start periodic flush for the aggregator (only if we also have a writer)
   if (_currentAggregator && appendEventRecord) {
@@ -358,6 +380,12 @@ function startActiveWindowWatcher(options) {
         if (_currentAggregator) {
           _currentAggregator.setActiveWindow(record.event_id, record.monotonic_ms);
         }
+
+        // Step 5: Notify the dwell engine. It will close the previous window's
+        // dwell segment and open a new one for this record.
+        if (_currentDwellEngine) {
+          _currentDwellEngine.onActiveWindow(record, appendEventRecord);
+        }
       } catch (err) {
         console.error('[activeWindow] appendEventRecord error:', err.message);
       }
@@ -381,6 +409,15 @@ function stopActiveWindowWatcher() {
     _currentAggregator.stopPeriodicFlush();
     _currentAggregator = null;
   }
+  if (_currentDwellEngine) {
+    try {
+      _currentDwellEngine.flushFinal(_currentAppendFn);
+    } catch (err) {
+      console.error('[activeWindow] dwellEngine.flushFinal error:', err.message);
+    }
+    _currentDwellEngine = null;
+  }
+  _currentAppendFn = null;
   _lastWindowKey = null;
 }
 

@@ -1,5 +1,10 @@
 ﻿# M-01 - JSONL Foundation (INTERFACES.md Compliant)
 
+- ID: `M-01`
+- Status: `Planned`
+- Type: `Feature`
+- Depends on: _None_
+
 ## Goal
 
 Implement a crash-safe, append-only JSONL persistence layer fully compliant with `INTERFACES.md`.
@@ -311,3 +316,4 @@ This task does **NOT** include:
 - Indexing
 
 These will be implemented in future milestones.
+

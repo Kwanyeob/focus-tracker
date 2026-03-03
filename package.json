@@ -7,10 +7,14 @@
     "build": "tsc",
     "test": "jest --testPathPattern=\"test/\" --forceExit",
     "test:unit": "jest --testPathPattern=\"test/\" --forceExit",
-    "soak": "npx ts-node scripts/soak/jsonl_soak_test.ts"
+    "soak": "npx ts-node scripts/soak/jsonl_soak_test.ts",
+    "report:daily": "node src/cli/index.js daily",
+    "report:weekly": "node src/cli/index.js weekly",
+    "build-features": "node src/cli/index.js build-features"
   },
   "dependencies": {
-    "active-win": "^7.7.2"
+    "active-win": "^7.7.2",
+    "better-sqlite3": "^12.6.2"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

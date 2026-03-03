@@ -1,9 +1,9 @@
 ﻿# M-03 - Active Window Capture Fix
 
-**ID:** `M-03-AW-FIX`  
-**Status:** Proposed  
-**Type:** Refactor  
-**Depends on:** `M-02-active-window-capture`
+- ID: `M-03-AW-FIX`
+- Status: `Proposed`
+- Type: `Refactor`
+- Depends on: `M-02-AW`
 
 ## 1. Background
 
@@ -175,3 +175,4 @@ This separation enables:
 - Idle segmentation
 - Productivity heatmaps
 - Window-level behavioral analytics
+

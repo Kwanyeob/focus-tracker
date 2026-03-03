@@ -1,5 +1,10 @@
 ﻿# M-02 - Active Window Tracking (INTERFACES.md Compliant)
 
+- ID: `M-02-AW`
+- Status: `Planned`
+- Type: `Feature`
+- Depends on: _None_
+
 ## Goal
 
 Implement production-grade Active Window Tracking compliant with `INTERFACES.md`.
@@ -261,3 +266,4 @@ Do **NOT** implement:
 - UI
 
 Only active window tracking.
+
