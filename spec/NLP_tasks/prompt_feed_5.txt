@@ -1,0 +1,31 @@
+You are working inside the focus-tracker project.
+Follow existing conventions. Do not invent unrelated features.
+Privacy: NO keystroke content logging, NO OCR, NO web page body/DOM capture, NO cloud calls.
+Performance: avoid CPU spikes; use debounce; cache embeddings.
+Output only the requested files with exact file paths and full content.
+
+Task: Implement ThresholdEngine with hybrid fixed + calibrated thresholds.
+
+Create:
+- src/nlp/thresholdEngineImpl.ts
+
+Requirements:
+- Fixed defaults:
+  - tOn = 0.62
+  - tOff = 0.48
+- updateDailyCalibration(goalId, dayUtc, scores):
+  - scores are finalScores for that day (after boosts)
+  - If scores length < 100 => do nothing
+  - Compute avg; if avg < 0.30 => do NOT calibrate (distraction day)
+  - Otherwise:
+     tOn = percentile(scores, 80)
+     tOff = percentile(scores, 50)
+  - Apply global floor: if tOn < 0.50 => tOn = 0.50
+  - Persist calibration to sqlite using existing DB layer (M-05-SQLITE).
+     Table: semantic_calibration(goal_id TEXT, day_utc TEXT, t_on REAL, t_off REAL, sample_count INT, created_at_utc TEXT)
+     Upsert by (goal_id, day_utc)
+- getThresholds(goalId):
+  - if today's calibration exists => return calibrated thresholds (mode="calibrated")
+  - else return fixed (mode="fixed")
+
+If sqlite migration is needed, output migration file too.

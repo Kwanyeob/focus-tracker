@@ -1,0 +1,30 @@
+You are working inside the focus-tracker project.
+Follow existing conventions. Do not invent unrelated features.
+Privacy: NO keystroke content logging, NO OCR, NO web page body/DOM capture, NO cloud calls.
+Performance: avoid CPU spikes; use debounce; cache embeddings.
+Output only the requested files with exact file paths and full content.
+
+Task: Implement TitleNormalizer only.
+
+Create file:
+- src/nlp/titleNormalizerImpl.ts
+
+Requirements:
+- Export class TitleNormalizerImpl implements TitleNormalizer.
+- normalize(appName, windowTitle) returns NormalizeResult.
+
+Normalization rules:
+1) Always prefix app: normalizedText must start with "{appName} — "
+2) lowercase everything
+3) trim + collapse whitespace
+4) remove tab counts: "(3)", "[2]" at start
+5) remove unread badges like "•" "*" at start/end
+6) remove common trailing suffix patterns:
+   - " - google chrome", " - microsoft edge", " - slack", " - discord"
+7) collapse repeated separators: "—", "|", "::"
+8) remove obvious long ids (uuid-like / long hex / long numeric runs)
+9) cap length to 180 chars
+10) optionally extract domainHint if a domain-like token exists (best-effort, may be null)
+
+No embedding, no cosine, no sqlite.
+Provide a few inline unit-test-like examples as comments at bottom (not a test framework).

@@ -1,0 +1,49 @@
+You are working inside the focus-tracker project.
+Follow existing conventions. Do not invent unrelated features.
+Privacy: NO keystroke content logging, NO OCR, NO web page body/DOM capture, NO cloud calls.
+Performance: avoid CPU spikes; use debounce; cache embeddings.
+Output only the requested files with exact file paths and full content.
+
+Task: Implement SemanticMatchEngine core evaluation logic with debounce and confidence.
+
+Create:
+- src/nlp/semanticMatchEngineImpl.ts
+
+Requirements:
+- Constructor dependencies:
+  - GoalManager
+  - TitleNormalizer
+  - EmbeddingService
+  - BoostTable
+  - ThresholdEngine
+
+Core logic:
+1) Get active goal. If none => label unknown.
+2) Normalize window text with TitleNormalizer (must include app prefix).
+3) Debounce / dwell guard:
+   - If input.dwellMs is provided and < 1000 => return label "unknown" immediately (no embedding)
+   - If dwellMs < 2000 => optionally skip embeddings; return unknown or low-confidence (choose unknown for MVP)
+4) Compute:
+   - goalVector (cache in-memory per goalId; compute via EmbeddingService.embed(goal.normalizedText))
+   - windowVector via EmbeddingService.embed(normalizedText)
+   - simScore = cosine(goalVector, windowVector)
+5) boosts:
+   - appBoost = BoostTable.getAppBoost(appName, normalizedText)
+   - kwBoost = BoostTable.getKeywordBoost(normalizedText)
+   - finalScore = clamp(simScore + appBoost + kwBoost, 0..1)
+6) thresholds:
+   - {tOn,tOff} = ThresholdEngine.getThresholds(goal.id)
+7) label:
+   - if finalScore >= tOn => on_goal
+   - else if finalScore >= tOff => related
+   - else off_goal
+8) confidence:
+   - dwellMs < 10000 => low
+   - 10000..30000 => medium
+   - > 30000 => high
+9) return SemanticOutput with thresholdsUsed
+
+No direct writes to sqlite here (threshold engine handles calibration; dwell engine stores sessions).
+Provide helper functions: cosine, clamp.
+
+Also include a note in comments on how DwellEngine should pass dwellMs at session close for stable labeling.

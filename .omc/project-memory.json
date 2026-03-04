@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1772500413035,
+  "lastScanned": 1772590253595,
   "projectRoot": "C:\\Users\\정관엽\\Desktop\\focus-tracker",
   "techStack": {
     "languages": [
@@ -40,14 +40,17 @@
       "build": "tsc",
       "test": "jest --testPathPattern=\"test/\" --forceExit",
       "test:unit": "jest --testPathPattern=\"test/\" --forceExit",
-      "soak": "npx ts-node scripts/soak/jsonl_soak_test.ts"
+      "soak": "npx ts-node scripts/soak/jsonl_soak_test.ts",
+      "report:daily": "node src/cli/index.js daily",
+      "report:weekly": "node src/cli/index.js weekly",
+      "build-features": "node src/cli/index.js build-features"
     }
   },
   "conventions": {
     "namingStyle": null,
     "importStyle": null,
     "testPattern": null,
-    "fileOrganization": null
+    "fileOrganization": "feature-based"
   },
   "structure": {
     "isMonorepo": false,
@@ -67,14 +70,14 @@
       "path": "agents",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1772500412984,
+      "lastAccessed": 1772590253535,
       "keyFiles": []
     },
     "capture": {
       "path": "capture",
       "purpose": null,
       "fileCount": 5,
-      "lastAccessed": 1772500412985,
+      "lastAccessed": 1772590253550,
       "keyFiles": [
         "activeWindow.js",
         "activeWindowWin.js",
@@ -87,7 +90,7 @@
       "path": "data",
       "purpose": "Data files",
       "fileCount": 1,
-      "lastAccessed": 1772500412997,
+      "lastAccessed": 1772590253551,
       "keyFiles": [
         "demo-events.jsonl"
       ]
@@ -96,7 +99,7 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 5,
-      "lastAccessed": 1772500412998,
+      "lastAccessed": 1772590253552,
       "keyFiles": [
         "ARCHITECTURE.md",
         "DECISION.md",
@@ -109,7 +112,7 @@
       "path": "persistence",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1772500412999,
+      "lastAccessed": 1772590253552,
       "keyFiles": [
         "checkpoint.js",
         "ingestionWorker.js",
@@ -121,7 +124,7 @@
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 1,
-      "lastAccessed": 1772500412999,
+      "lastAccessed": 1772590253552,
       "keyFiles": [
         "demo-active-window.js"
       ]
@@ -129,24 +132,22 @@
     "spec": {
       "path": "spec",
       "purpose": "Test specifications",
-      "fileCount": 1,
-      "lastAccessed": 1772500412999,
-      "keyFiles": [
-        "changes.yaml"
-      ]
+      "fileCount": 0,
+      "lastAccessed": 1772590253553,
+      "keyFiles": []
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
       "fileCount": 0,
-      "lastAccessed": 1772500413000,
+      "lastAccessed": 1772590253553,
       "keyFiles": []
     },
     "test": {
       "path": "test",
       "purpose": "Test files",
       "fileCount": 6,
-      "lastAccessed": 1772500413000,
+      "lastAccessed": 1772590253554,
       "keyFiles": [
         "activeWindow.test.js",
         "checkpoint.test.ts",
@@ -158,111 +159,147 @@
   },
   "hotPaths": [
     {
-      "path": "package.json",
-      "accessCount": 3,
-      "lastAccessed": 1772500947833,
+      "path": "src\\nlp\\titleNormalizerImpl.ts",
+      "accessCount": 6,
+      "lastAccessed": 1772593018201,
       "type": "file"
     },
     {
-      "path": "",
+      "path": "src\\nlp\\embeddingServiceImpl.ts",
+      "accessCount": 5,
+      "lastAccessed": 1772593018670,
+      "type": "file"
+    },
+    {
+      "path": "src\\nlp\\titleNormalizer.ts",
       "accessCount": 2,
-      "lastAccessed": 1772500434020,
-      "type": "directory"
-    },
-    {
-      "path": "spec\\changes.yaml",
-      "accessCount": 1,
-      "lastAccessed": 1772500421239,
+      "lastAccessed": 1772590474985,
       "type": "file"
     },
     {
-      "path": "spec\\tasks\\M-05-local-storage-sqlite.md",
-      "accessCount": 1,
-      "lastAccessed": 1772500422993,
+      "path": "src\\nlp\\embeddingService.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772590599708,
       "type": "file"
     },
     {
-      "path": "spec\\tasks\\M-07-reporting-mvp.md",
-      "accessCount": 1,
-      "lastAccessed": 1772500427964,
+      "path": "src\\nlp\\thresholdEngine.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772590840778,
       "type": "file"
     },
     {
-      "path": "capture\\activeWindow.js",
-      "accessCount": 1,
-      "lastAccessed": 1772500428362,
+      "path": "src\\nlp\\types.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772591224870,
+      "type": "file"
+    },
+    {
+      "path": "src\\nlp\\boostTableImpl.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772592454819,
+      "type": "file"
+    },
+    {
+      "path": "src\\nlp\\thresholdEngineImpl.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772592455269,
+      "type": "file"
+    },
+    {
+      "path": "src\\nlp\\semanticMatchEngineImpl.ts",
+      "accessCount": 2,
+      "lastAccessed": 1772592455401,
       "type": "file"
     },
     {
       "path": "capture\\dwellEngine.js",
-      "accessCount": 1,
-      "lastAccessed": 1772500428699,
+      "accessCount": 2,
+      "lastAccessed": 1772592903330,
       "type": "file"
     },
     {
-      "path": "capture\\inputAggregator.js",
+      "path": "spec\\NLP_tasks\\promt_feed_1.txt",
       "accessCount": 1,
-      "lastAccessed": 1772500437534,
+      "lastAccessed": 1772590325996,
       "type": "file"
     },
     {
-      "path": "src\\storage\\sqlite\\migrations\\001_init.sql",
+      "path": "src\\nlp\\goalManager.ts",
       "accessCount": 1,
-      "lastAccessed": 1772500720271,
+      "lastAccessed": 1772590335411,
       "type": "file"
     },
     {
-      "path": "src\\storage\\sqlite\\migrations\\002_features_30s.sql",
+      "path": "src\\nlp\\boostTable.ts",
       "accessCount": 1,
-      "lastAccessed": 1772500723995,
+      "lastAccessed": 1772590337962,
+      "type": "file"
+    },
+    {
+      "path": "src\\nlp\\semanticMatchEngine.ts",
+      "accessCount": 1,
+      "lastAccessed": 1772590340423,
+      "type": "file"
+    },
+    {
+      "path": "spec\\NLP_tasks\\promt_feed_2.txt",
+      "accessCount": 1,
+      "lastAccessed": 1772590472493,
+      "type": "file"
+    },
+    {
+      "path": "spec\\NLP_tasks\\promt_feed_3.txt",
+      "accessCount": 1,
+      "lastAccessed": 1772590595364,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1772590599861,
+      "type": "directory"
+    },
+    {
+      "path": "tsconfig.json",
+      "accessCount": 1,
+      "lastAccessed": 1772590609612,
+      "type": "file"
+    },
+    {
+      "path": "spec\\NLP_tasks\\promt_feed_4.txt",
+      "accessCount": 1,
+      "lastAccessed": 1772590699044,
+      "type": "file"
+    },
+    {
+      "path": "spec\\NLP_tasks\\promt_feed_5.txt",
+      "accessCount": 1,
+      "lastAccessed": 1772590836662,
       "type": "file"
     },
     {
       "path": "src\\storage\\sqlite\\db.js",
       "accessCount": 1,
-      "lastAccessed": 1772500746360,
+      "lastAccessed": 1772590840694,
       "type": "file"
     },
     {
-      "path": "src\\storage\\sqlite\\repository.js",
+      "path": "src\\storage\\sqlite\\migrations\\003_semantic_calibration.sql",
       "accessCount": 1,
-      "lastAccessed": 1772500774924,
+      "lastAccessed": 1772590859038,
       "type": "file"
     },
     {
-      "path": "src\\pipeline\\eventWriter.js",
+      "path": "spec\\NLP_tasks\\promt_feed_6.txt",
       "accessCount": 1,
-      "lastAccessed": 1772500792445,
+      "lastAccessed": 1772591221769,
       "type": "file"
     },
     {
-      "path": "src\\features\\categoryMap.js",
+      "path": "spec\\NLP_tasks\\NLP_spec.md",
       "accessCount": 1,
-      "lastAccessed": 1772500834554,
-      "type": "file"
-    },
-    {
-      "path": "src\\features\\featureBuilder.js",
-      "accessCount": 1,
-      "lastAccessed": 1772500873487,
-      "type": "file"
-    },
-    {
-      "path": "src\\reports\\dailyReport.js",
-      "accessCount": 1,
-      "lastAccessed": 1772500901747,
-      "type": "file"
-    },
-    {
-      "path": "src\\reports\\weeklyReport.js",
-      "accessCount": 1,
-      "lastAccessed": 1772500911006,
-      "type": "file"
-    },
-    {
-      "path": "src\\cli\\index.js",
-      "accessCount": 1,
-      "lastAccessed": 1772500939142,
+      "lastAccessed": 1772592453304,
       "type": "file"
     }
   ],

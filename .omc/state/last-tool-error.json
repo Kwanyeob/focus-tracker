@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd \\\"C:/Users/정관엽/Desktop/focus-tracker\\\" && node src/cli/index.js 2>&1\",\"timeout\":10000,\"description\":\"Test CLI usage output\"}",
-  "error": "Exit code 1\n\nUsage:\n  node src/cli/index.js <command> [options]\n\nCommands:\n  daily          Show today's focus summary\n  weekly         Show the past 7 days summary\n  build-features Generate / refresh features_30s from raw events\n\nOptions:\n  --date  YYYY-MM-DD   Target date (daily) or week end date (weekly)\n  --start YYYY-MM-DD   Start date for build-features\n  --end   YYYY-MM-DD   End date   for build-features\n  --json               Output raw JSON instead of human-readable text\n\n\n\nUsage:\n  nod...",
-  "timestamp": "2026-03-03T01:26:06.202Z",
+  "tool_input_preview": "{\"command\":\"cd /c/Users/정관엽/Desktop/focus-tracker && npx tsc --noEmit 2>&1\",\"description\":\"Type-check embeddingServiceImpl.ts\"}",
+  "error": "Exit code 2\nsrc/nlp/embeddingServiceImpl.ts(58,39): error TS2307: Cannot find module '@xenova/transformers' or its corresponding type declarations.\r\n\nsrc/nlp/embeddingServiceImpl.ts(58,39): error TS2307: Cannot find module '@xenova/transformers' or its corresponding type declarations.",
+  "timestamp": "2026-03-04T02:17:06.278Z",
   "retry_count": 1
 }

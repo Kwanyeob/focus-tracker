@@ -1,0 +1,30 @@
+You are working inside the focus-tracker project.
+Follow existing conventions. Do not invent unrelated features.
+Privacy: NO keystroke content logging, NO OCR, NO web page body/DOM capture, NO cloud calls.
+Performance: avoid CPU spikes; use debounce; cache embeddings.
+Output only the requested files with exact file paths and full content.
+
+Task: Implement EmbeddingService with local transformers.js and LRU cache.
+
+Create file:
+- src/nlp/embeddingServiceImpl.ts
+
+Requirements:
+- Export class EmbeddingServiceImpl implements EmbeddingService.
+- Use transformers.js pipeline feature-extraction.
+- Must load multilingual model: paraphrase-multilingual-MiniLM-L12-v2
+- Must enable quantized: true
+- Singleton-safe init: multiple init() calls should not double-load.
+- Provide LRU cache (size configurable; default 5000):
+  - key: normalizedText
+  - value: vector number[]
+- embed(text):
+  - normalize input text minimally (trim)
+  - return cached if present
+  - otherwise compute and cache
+- shutdown():
+  - release references so GC can free
+- Do NOT integrate debounce here (that belongs to match engine / caller)
+- No sqlite, no heuristics, no thresholds.
+
+If project already has an LRU utility, use it; otherwise implement a small LRU in-file.

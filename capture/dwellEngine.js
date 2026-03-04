@@ -39,6 +39,10 @@ const SCHEMA_VERSION = '1.1.0';
  */
 const DEFAULT_HEARTBEAT_INTERVAL_MS = 30_000;
 
+// EPIC-01 v0.3: 3-second confirmation window — label must be stable this long
+// before it is considered confirmed and stored in the session record.
+const LABEL_CONFIRMATION_WINDOW_MS = 3_000;
+
 // ─── DwellEngine ─────────────────────────────────────────────────────────────
 
 class DwellEngine {
@@ -78,6 +82,14 @@ class DwellEngine {
 
     /** Heartbeat setInterval handle, or null when stopped. */
     this._heartbeatTimer = null;
+
+    // ── Semantic label confirmation state (EPIC-01 v0.3 §5.1) ──────────────
+    /** The most recently observed (but possibly unconfirmed) label. */
+    this._pendingLabel = null;
+    /** monotonic_ms when the current pendingLabel was first seen. */
+    this._pendingSinceMonotonicMs = null;
+    /** The confirmed label — null until the label is stable for LABEL_CONFIRMATION_WINDOW_MS. */
+    this._confirmedLabel = null;
   }
 
   // ─── Public API ────────────────────────────────────────────────────────────
@@ -107,6 +119,11 @@ class DwellEngine {
     this._currentRecord           = record;
     this._segmentStartMonotonicMs = record.monotonic_ms;
 
+    // Reset confirmation state for the new window
+    this._pendingLabel            = null;
+    this._pendingSinceMonotonicMs = null;
+    this._confirmedLabel          = null;
+
     // Restart heartbeat for the new window
     this._stopHeartbeat();
     if (appendEventRecord) {
@@ -135,6 +152,39 @@ class DwellEngine {
 
     this._currentRecord           = null;
     this._segmentStartMonotonicMs = null;
+    this._pendingLabel            = null;
+    this._pendingSinceMonotonicMs = null;
+    this._confirmedLabel          = null;
+  }
+
+  /**
+   * Update the semantic label for the current window session.
+   * Implements the EPIC-01 v0.3 §5.1 confirmation window:
+   * a label must remain stable for LABEL_CONFIRMATION_WINDOW_MS before
+   * it is stored as the confirmed label in the dwell record.
+   *
+   * Call this from the orchestration layer after SemanticMatchEngine.evaluate()
+   * returns a result for the current window.
+   *
+   * @param {string} label            - The new label from SemanticMatchEngine
+   * @param {number} nowMonotonicMs   - Current monotonic timestamp (ms)
+   */
+  updateSemanticLabel(label, nowMonotonicMs) {
+    if (label !== this._pendingLabel) {
+      // Label changed — start a new confirmation countdown
+      this._pendingLabel            = label;
+      this._pendingSinceMonotonicMs = nowMonotonicMs;
+      // Do NOT promote to confirmed yet
+      return;
+    }
+
+    // Label is stable — check if confirmation window has elapsed
+    if (
+      this._pendingSinceMonotonicMs !== null &&
+      (nowMonotonicMs - this._pendingSinceMonotonicMs) >= LABEL_CONFIRMATION_WINDOW_MS
+    ) {
+      this._confirmedLabel = this._pendingLabel;
+    }
   }
 
   // ─── Heartbeat ─────────────────────────────────────────────────────────────
@@ -175,6 +225,8 @@ class DwellEngine {
    * Guarantees:
    *   - dwell_time_ms >= 0 (monotonic clock regressions silently floored to 0)
    *   - appendEventRecord errors are caught and logged; they do NOT throw
+   *   - semantic_label is the CONFIRMED label; "unknown" if not yet confirmed
+   *     (EPIC-01 v0.3 §5.1 — unconfirmed labels do not count toward aggregates)
    *
    * @param {number}        endMonotonicMs
    * @param {function|null} appendEventRecord
@@ -206,6 +258,9 @@ class DwellEngine {
       start_monotonic_ms:      startMs,
       end_monotonic_ms:        endMonotonicMs,
       dwell_time_ms:           dwellMs,
+      // EPIC-01 v0.3: only the confirmed label is stored; "unknown" if the
+      // 3-second confirmation window had not yet elapsed when the session ended.
+      semantic_label:          this._confirmedLabel || 'unknown',
     };
 
     if (typeof appendEventRecord === 'function') {
@@ -222,4 +277,4 @@ class DwellEngine {
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-module.exports = { DwellEngine, DEFAULT_HEARTBEAT_INTERVAL_MS };
+module.exports = { DwellEngine, DEFAULT_HEARTBEAT_INTERVAL_MS, LABEL_CONFIRMATION_WINDOW_MS };

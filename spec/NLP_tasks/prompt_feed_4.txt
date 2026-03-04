@@ -1,0 +1,28 @@
+You are working inside the focus-tracker project.
+Follow existing conventions. Do not invent unrelated features.
+Privacy: NO keystroke content logging, NO OCR, NO web page body/DOM capture, NO cloud calls.
+Performance: avoid CPU spikes; use debounce; cache embeddings.
+Output only the requested files with exact file paths and full content.
+
+Task: Implement BoostTable rule logic (app boosts + keyword boosts).
+
+Create:
+- src/nlp/boostTableImpl.ts
+
+Requirements:
+- Export class BoostTableImpl implements BoostTable.
+- Provide default boosts (can be tweaked later):
+  App boosts:
+   - contains "vscode" or "visual studio code" => +0.15
+   - contains "intellij" => +0.15
+   - contains "terminal" or "powershell" or "cmd" => +0.12
+   - contains "chrome" and normalizedText contains "leetcode" => +0.20
+   - contains "youtube" => -0.30
+   - contains "netflix" => -0.40
+   - else 0
+  Keyword boosts:
+   - if normalizedText contains any of ["leetcode","pull request","jira","design doc","sql"] => +0.10 (cap)
+   - if contains any of ["youtube","shorts","netflix","tiktok","instagram"] => -0.15 (cap)
+
+Return combined boosts separately by method (app vs keyword).
+No sqlite, no embeddings.

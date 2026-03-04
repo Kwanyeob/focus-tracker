@@ -1,0 +1,54 @@
+You are working inside the focus-tracker project.
+Follow existing conventions. Do not invent unrelated features.
+Privacy: NO keystroke content logging, NO OCR, NO web page body/DOM capture, NO cloud calls.
+Performance: avoid CPU spikes; use debounce; cache embeddings.
+Output only the requested files with exact file paths and full content.
+
+Task: Create TypeScript types + interfaces ONLY (no implementation).
+
+Create these files:
+
+1) src/nlp/types.ts
+- Define:
+  - SemanticLabel = "on_goal" | "related" | "off_goal" | "unknown"
+  - Confidence = "low" | "medium" | "high"
+  - ActiveGoal { id, text, normalizedText, modelId, createdAtUtc, updatedAtUtc }
+  - SemanticInput { appName, windowTitle, tsUtc (ISO UTC), timezoneOffset (minutes), monotonicMs, dwellMs? }
+  - SemanticOutput { goalId|null, normalizedText, simScore, finalScore, label, confidence, thresholdsUsed? }
+
+2) src/nlp/goalManager.ts
+- Export interface GoalManager:
+  - setActiveGoal(text: string): Promise<ActiveGoal>
+  - getActiveGoal(): Promise<ActiveGoal|null>
+  - clearActiveGoal(): Promise<void>
+
+3) src/nlp/titleNormalizer.ts
+- Export interface TitleNormalizer:
+  - normalize(appName: string, windowTitle: string): NormalizeResult
+- NormalizeResult must include:
+  - normalizedText (MUST include app prefix format: "{appName} — {cleanTitle}")
+  - rawAppName, rawWindowTitle
+  - domainHint?: string|null
+  - tokens?: string[] (optional debug)
+
+4) src/nlp/embeddingService.ts
+- Export interface EmbeddingService:
+  - init(): Promise<void>
+  - embed(text: string): Promise<number[]>
+  - shutdown(): Promise<void>
+
+5) src/nlp/boostTable.ts
+- Export interface BoostTable:
+  - getAppBoost(appName: string, normalizedText: string): number
+  - getKeywordBoost(normalizedText: string): number
+
+6) src/nlp/thresholdEngine.ts
+- Export interface ThresholdEngine:
+  - getThresholds(goalId: string): Promise<{ tOn: number; tOff: number; mode: "fixed"|"calibrated" }>
+  - updateDailyCalibration(goalId: string, dayUtc: string, scores: number[]): Promise<void>
+
+7) src/nlp/semanticMatchEngine.ts
+- Export interface SemanticMatchEngine:
+  - evaluate(input: SemanticInput): Promise<SemanticOutput>
+
+No implementation logic. Only types/interfaces and exports.
