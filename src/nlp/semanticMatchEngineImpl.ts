@@ -4,6 +4,7 @@ import type { GoalManager } from "./goalManager";
 import type { TitleNormalizer } from "./titleNormalizer";
 import type { EmbeddingService } from "./embeddingService";
 import type { ThresholdEngine } from "./thresholdEngine";
+import type { BoostTable } from "./boostTable";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -31,12 +32,6 @@ function readEnvNumber(name: string, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function extractTitleOnly(normalizedText: string): string {
-  const sep = " | ";
-  const idx = normalizedText.indexOf(sep);
-  if (idx < 0) return normalizedText;
-  return normalizedText.slice(idx + sep.length).trim();
-}
 
 function getConfidence(dwellMs: number | undefined): Confidence {
   if (dwellMs === undefined || dwellMs < 10_000) return "low";
@@ -53,7 +48,6 @@ const UNKNOWN_OUTPUT = (normalizedText: string): SemanticOutput => ({
   confidence: "low",
 });
 
-const EMBED_TITLE_ONLY = process.env.NLP_EMBED_TITLE_ONLY === "1";
 const MIN_DWELL_FOR_CLASSIFY_MS = readEnvNumber("NLP_MIN_DWELL_MS", 2_000);
 
 // ---------------------------------------------------------------------------
@@ -69,6 +63,7 @@ export class SemanticMatchEngineImpl implements SemanticMatchEngine {
     private readonly titleNormalizer: TitleNormalizer,
     private readonly embeddingService: EmbeddingService,
     private readonly thresholdEngine: ThresholdEngine,
+    private readonly boostTable: BoostTable,
   ) {}
 
   async evaluate(input: SemanticInput): Promise<SemanticOutput> {
@@ -89,20 +84,19 @@ export class SemanticMatchEngineImpl implements SemanticMatchEngine {
     }
 
     // 4) Embeddings
+    // goal.normalizedText = normalized todoText (topic only, no platform names)
     let goalVector = this.goalVectorCache.get(goal.id);
     if (!goalVector) {
       goalVector = await this.embeddingService.embed(goal.normalizedText);
       this.goalVectorCache.set(goal.id, goalVector);
     }
-    const windowTextForEmbedding = EMBED_TITLE_ONLY
-      ? extractTitleOnly(normalizedText)
-      : normalizedText;
-    const windowVector = await this.embeddingService.embed(windowTextForEmbedding);
+    const windowVector = await this.embeddingService.embed(normalizedText);
 
     const simScore = cosine(goalVector, windowVector);
 
-    // 5) MVP-lite: no heuristic boosts (similarity only)
-    const finalScore = clamp(simScore, 0, 1);
+    // 5) App hint boost: +0.15 when current app matches goal's appHint
+    const appBoost = this.boostTable.getAppBoost(input.appName, goal.appHint);
+    const finalScore = clamp(simScore + appBoost, 0, 1);
 
     // 6) Thresholds
     const { tOn, tOff } = await this.thresholdEngine.getThresholds(goal.id);

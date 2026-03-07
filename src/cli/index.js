@@ -11,7 +11,7 @@
  *   weekly  [--date YYYY-MM-DD] [--json]   7-day weekly summary
  *   build-features [--start YYYY-MM-DD] [--end YYYY-MM-DD]
  *                                          Build / rebuild features_30s
- *   goal set "<text>"                      Set the active deep-work goal
+ *   goal set "<text>" [--app <app>]        Set the active deep-work goal
  *   goal show                              Show the current active goal
  *   goal clear                             Clear the active goal
  *
@@ -53,6 +53,9 @@ function parseArgs(argv) {
         break;
       case '--end':
         if (args[i + 1]) flags.end = args[++i];
+        break;
+      case '--app':
+        if (args[i + 1]) flags.app = args[++i];
         break;
       default:
         break;
@@ -185,20 +188,25 @@ async function cmdGoal(rawArgs) {
 
   switch (sub) {
     case 'set': {
-      const text = rawArgs[2];
-      if (!text) {
-        console.error('Usage: goal set "<text>"');
+      // Support: goal set "todo text" --app leetcode
+      // rawArgs = ['goal', 'set', '<text>', '--app', '<app>']
+      const textArg = rawArgs.slice(2).find(a => !a.startsWith('--'));
+      const appIdx  = rawArgs.indexOf('--app');
+      const appArg  = appIdx !== -1 ? rawArgs[appIdx + 1] : undefined;
+
+      if (!textArg) {
+        console.error('Usage: goal set "<what are you working on>" [--app <primary-app>]');
         process.exitCode = 1;
         return;
       }
-      const goal = await mgr.setActiveGoal(text);
+      const goal = await mgr.setActiveGoal({ todoText: textArg, appHint: appArg });
       console.log(`Active goal set: ${goal.text}`);
       break;
     }
     case 'show': {
       const goal = await mgr.getActiveGoal();
       if (goal) {
-        console.log(`Active goal: ${goal.text}`);
+        console.log(`Active goal: ${goal.todoText}${goal.appHint ? ` [app: ${goal.appHint}]` : ''}`);
       } else {
         console.log('No active goal set.');
       }
@@ -223,7 +231,7 @@ Commands:
   daily          Show today's focus summary
   weekly         Show the past 7 days summary
   build-features Generate / refresh features_30s from raw events
-  goal set "<text>"  Set the active deep-work goal
+  goal set "<text>" [--app <app>]  Set the active deep-work goal
   goal show          Show the current active goal
   goal clear         Clear the active goal
 

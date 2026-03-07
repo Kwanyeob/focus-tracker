@@ -4,6 +4,8 @@ export type Confidence = "low" | "medium" | "high";
 export interface ActiveGoal {
   id: string;
   text: string;
+  todoText: string;
+  appHint: string | null;
   normalizedText: string;
   modelId: string;
   createdAtUtc: string;

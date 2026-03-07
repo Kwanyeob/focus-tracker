@@ -1,4 +1,4 @@
-import type { GoalManager } from "./goalManager";
+import type { GoalManager, SetGoalInput } from "./goalManager";
 import type { ActiveGoal } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -14,6 +14,8 @@ const CREATE_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS active_goal (
     id              TEXT PRIMARY KEY,
     text            TEXT NOT NULL,
+    todo_text       TEXT NOT NULL DEFAULT '',
+    app_hint        TEXT,
     normalized_text TEXT NOT NULL,
     model_id        TEXT NOT NULL,
     created_at_utc  TEXT NOT NULL,
@@ -22,16 +24,18 @@ const CREATE_TABLE_SQL = `
 `;
 
 const UPSERT_SQL = `
-  INSERT INTO active_goal (id, text, normalized_text, model_id, created_at_utc, updated_at_utc)
-  VALUES (?, ?, ?, ?, ?, ?)
+  INSERT INTO active_goal (id, text, todo_text, app_hint, normalized_text, model_id, created_at_utc, updated_at_utc)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     text            = excluded.text,
+    todo_text       = excluded.todo_text,
+    app_hint        = excluded.app_hint,
     normalized_text = excluded.normalized_text,
     model_id        = excluded.model_id,
     updated_at_utc  = excluded.updated_at_utc
 `;
 
-const SELECT_SQL = `SELECT id, text, normalized_text, model_id, created_at_utc, updated_at_utc
+const SELECT_SQL = `SELECT id, text, todo_text, app_hint, normalized_text, model_id, created_at_utc, updated_at_utc
                     FROM active_goal WHERE id = ?`;
 
 const DELETE_SQL = `DELETE FROM active_goal WHERE id = ?`;
@@ -40,13 +44,15 @@ function ensureTable(): void {
   getDb().exec(CREATE_TABLE_SQL);
 }
 
-function normalizeGoalText(text: string): string {
-  return text.trim().replace(/\s+/g, " ");
+function normalizeTodoText(text: string): string {
+  return text.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function rowToActiveGoal(row: {
   id: string;
   text: string;
+  todo_text: string;
+  app_hint: string | null;
   normalized_text: string;
   model_id: string;
   created_at_utc: string;
@@ -55,6 +61,8 @@ function rowToActiveGoal(row: {
   return {
     id:             row.id,
     text:           row.text,
+    todoText:       row.todo_text,
+    appHint:        row.app_hint,
     normalizedText: row.normalized_text,
     modelId:        row.model_id,
     createdAtUtc:   row.created_at_utc,
@@ -63,13 +71,16 @@ function rowToActiveGoal(row: {
 }
 
 export class GoalManagerImpl implements GoalManager {
-  async setActiveGoal(text: string): Promise<ActiveGoal> {
+  async setActiveGoal(input: SetGoalInput): Promise<ActiveGoal> {
     ensureTable();
 
-    const normalizedText = normalizeGoalText(text);
-    const now = new Date().toISOString();
+    const todoText      = input.todoText.trim();
+    const appHint       = input.appHint?.trim() || null;
+    const normalizedText = normalizeTodoText(todoText);
+    // text = human-readable display string
+    const text = appHint ? `${todoText} [app: ${appHint}]` : todoText;
+    const now  = new Date().toISOString();
 
-    // Preserve original createdAtUtc if a row already exists
     const existing = getDb().prepare(SELECT_SQL).get(ACTIVE_ROW_ID) as
       | { created_at_utc: string }
       | undefined;
@@ -77,11 +88,11 @@ export class GoalManagerImpl implements GoalManager {
 
     getDb()
       .prepare(UPSERT_SQL)
-      .run(ACTIVE_ROW_ID, text, normalizedText, DEFAULT_MODEL_ID, createdAt, now);
+      .run(ACTIVE_ROW_ID, text, todoText, appHint, normalizedText, DEFAULT_MODEL_ID, createdAt, now);
 
     const row = getDb().prepare(SELECT_SQL).get(ACTIVE_ROW_ID) as {
-      id: string; text: string; normalized_text: string;
-      model_id: string; created_at_utc: string; updated_at_utc: string;
+      id: string; text: string; todo_text: string; app_hint: string | null;
+      normalized_text: string; model_id: string; created_at_utc: string; updated_at_utc: string;
     };
 
     return rowToActiveGoal(row);
@@ -91,7 +102,8 @@ export class GoalManagerImpl implements GoalManager {
     ensureTable();
 
     const row = getDb().prepare(SELECT_SQL).get(ACTIVE_ROW_ID) as
-      | { id: string; text: string; normalized_text: string; model_id: string; created_at_utc: string; updated_at_utc: string }
+      | { id: string; text: string; todo_text: string; app_hint: string | null;
+          normalized_text: string; model_id: string; created_at_utc: string; updated_at_utc: string }
       | undefined;
 
     return row ? rowToActiveGoal(row) : null;
