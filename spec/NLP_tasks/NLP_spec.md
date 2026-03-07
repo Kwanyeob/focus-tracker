@@ -152,7 +152,7 @@ If caching final scores or labels, the cache key must be:
 (goal_id, normalized_text)
 ```
 
-## 3. Scoring Engine (Hybrid Model)
+## 3. Scoring Engine (MVP-lite)
 
 ### 3.1 Base Similarity
 
@@ -160,39 +160,10 @@ If caching final scores or labels, the cache key must be:
 sim = cosine(goal_vector, window_vector)
 ```
 
-### 3.2 Heuristic Boost
-
-#### App Boost Examples
-
-| App Context | Boost |
-|---|---:|
-| VSCode / IntelliJ | +0.15 |
-| Terminal | +0.12 |
-| Chrome (leetcode) | +0.20 |
-| YouTube | -0.30 |
-| Netflix | -0.40 |
-
-#### Keyword Boost Examples
-
-Positive:
-
-- `leetcode`
-- `sql`
-- `pull request`
-- `jira`
-- `design doc`
-
-Negative:
-
-- `youtube`
-- `shorts`
-- `netflix`
-- `tiktok`
-
 ### 3.3 Final Score
 
 ```txt
-final = clamp(sim + app_boost + keyword_boost, 0, 1)
+final = clamp(sim, 0, 1)
 ```
 
 ## 4. Adaptive Threshold (Hybrid Absolute + Relative)
@@ -297,7 +268,6 @@ ON window_sessions (goal_id, start_ts_utc);
    - Normalize (App Prefix included)
    - Compute embedding (LRU cache)
    - Compute cosine similarity
-   - Apply heuristic boosts
    - Apply thresholds
    - Finalize label
    - Attach semantic label to dwell session
@@ -308,7 +278,7 @@ ON window_sessions (goal_id, start_ts_utc);
 1. Multilingual quantized embedding integration
 2. `TitleNormalizer` with mandatory App Prefix
 3. Debounce-based embedding invocation
-4. Heuristic boost plus fixed thresholds
+4. Similarity-only score plus fixed thresholds
 5. SQLite migration plus composite indexes
 6. Adaptive threshold with Global Floor
 

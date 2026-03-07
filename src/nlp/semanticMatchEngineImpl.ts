@@ -3,7 +3,6 @@ import type { SemanticInput, SemanticOutput, Confidence } from "./types";
 import type { GoalManager } from "./goalManager";
 import type { TitleNormalizer } from "./titleNormalizer";
 import type { EmbeddingService } from "./embeddingService";
-import type { BoostTable } from "./boostTable";
 import type { ThresholdEngine } from "./thresholdEngine";
 
 // ---------------------------------------------------------------------------
@@ -25,6 +24,20 @@ function clamp(v: number, min: number, max: number): number {
   return v < min ? min : v > max ? max : v;
 }
 
+function readEnvNumber(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function extractTitleOnly(normalizedText: string): string {
+  const sep = " | ";
+  const idx = normalizedText.indexOf(sep);
+  if (idx < 0) return normalizedText;
+  return normalizedText.slice(idx + sep.length).trim();
+}
+
 function getConfidence(dwellMs: number | undefined): Confidence {
   if (dwellMs === undefined || dwellMs < 10_000) return "low";
   if (dwellMs <= 30_000) return "medium";
@@ -40,6 +53,9 @@ const UNKNOWN_OUTPUT = (normalizedText: string): SemanticOutput => ({
   confidence: "low",
 });
 
+const EMBED_TITLE_ONLY = process.env.NLP_EMBED_TITLE_ONLY === "1";
+const MIN_DWELL_FOR_CLASSIFY_MS = readEnvNumber("NLP_MIN_DWELL_MS", 2_000);
+
 // ---------------------------------------------------------------------------
 // SemanticMatchEngineImpl
 // ---------------------------------------------------------------------------
@@ -52,7 +68,6 @@ export class SemanticMatchEngineImpl implements SemanticMatchEngine {
     private readonly goalManager: GoalManager,
     private readonly titleNormalizer: TitleNormalizer,
     private readonly embeddingService: EmbeddingService,
-    private readonly boostTable: BoostTable,
     private readonly thresholdEngine: ThresholdEngine,
   ) {}
 
@@ -69,7 +84,7 @@ export class SemanticMatchEngineImpl implements SemanticMatchEngine {
 
     // 3) Dwell guard
     const dwell = input.dwellMs;
-    if (dwell !== undefined && dwell < 2_000) {
+    if (dwell !== undefined && dwell < MIN_DWELL_FOR_CLASSIFY_MS) {
       return { ...UNKNOWN_OUTPUT(normalizedText), goalId: goal.id };
     }
 
@@ -79,14 +94,15 @@ export class SemanticMatchEngineImpl implements SemanticMatchEngine {
       goalVector = await this.embeddingService.embed(goal.normalizedText);
       this.goalVectorCache.set(goal.id, goalVector);
     }
-    const windowVector = await this.embeddingService.embed(normalizedText);
+    const windowTextForEmbedding = EMBED_TITLE_ONLY
+      ? extractTitleOnly(normalizedText)
+      : normalizedText;
+    const windowVector = await this.embeddingService.embed(windowTextForEmbedding);
 
     const simScore = cosine(goalVector, windowVector);
 
-    // 5) Boosts
-    const appBoost = this.boostTable.getAppBoost(input.appName, normalizedText);
-    const kwBoost  = this.boostTable.getKeywordBoost(normalizedText);
-    const finalScore = clamp(simScore + appBoost + kwBoost, 0, 1);
+    // 5) MVP-lite: no heuristic boosts (similarity only)
+    const finalScore = clamp(simScore, 0, 1);
 
     // 6) Thresholds
     const { tOn, tOff } = await this.thresholdEngine.getThresholds(goal.id);

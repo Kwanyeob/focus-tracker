@@ -11,12 +11,21 @@
  *   weekly  [--date YYYY-MM-DD] [--json]   7-day weekly summary
  *   build-features [--start YYYY-MM-DD] [--end YYYY-MM-DD]
  *                                          Build / rebuild features_30s
+ *   goal set "<text>"                      Set the active deep-work goal
+ *   goal show                              Show the current active goal
+ *   goal clear                             Clear the active goal
  *
  * Examples:
  *   node src/cli/index.js daily
  *   node src/cli/index.js daily --date 2026-02-24 --json
  *   node src/cli/index.js weekly --date 2026-03-02
  *   node src/cli/index.js build-features
+ *   node src/cli/index.js goal set "Implement M-08 feature"
+ *   node src/cli/index.js goal show
+ *   node src/cli/index.js goal clear
+ *
+ * Note: the `goal` command requires compiled TypeScript output.
+ *   Run `npx tsc` before using it.
  */
 
 const { openDb, closeDb } = require('../storage/sqlite/db');
@@ -160,6 +169,51 @@ function cmdBuildFeatures(flags) {
   console.log(`[featureBuilder] Wrote ${count} feature windows.`);
 }
 
+async function cmdGoal(rawArgs) {
+  // GoalManagerImpl is TypeScript — requires `npx tsc` before first use.
+  let GoalManagerImpl;
+  try {
+    ({ GoalManagerImpl } = require('../nlp/goalManagerImpl'));
+  } catch (_) {
+    console.error('[goal] Compiled output not found. Run: npx tsc');
+    process.exitCode = 1;
+    return;
+  }
+
+  const mgr = new GoalManagerImpl();
+  const sub = rawArgs[1]; // 'set' | 'show' | 'clear'
+
+  switch (sub) {
+    case 'set': {
+      const text = rawArgs[2];
+      if (!text) {
+        console.error('Usage: goal set "<text>"');
+        process.exitCode = 1;
+        return;
+      }
+      const goal = await mgr.setActiveGoal(text);
+      console.log(`Active goal set: ${goal.text}`);
+      break;
+    }
+    case 'show': {
+      const goal = await mgr.getActiveGoal();
+      if (goal) {
+        console.log(`Active goal: ${goal.text}`);
+      } else {
+        console.log('No active goal set.');
+      }
+      break;
+    }
+    case 'clear':
+      await mgr.clearActiveGoal();
+      console.log('Active goal cleared.');
+      break;
+    default:
+      console.error('Usage: goal [set "<text>" | show | clear]');
+      process.exitCode = 1;
+  }
+}
+
 function printUsage() {
   console.log(`
 Usage:
@@ -169,6 +223,9 @@ Commands:
   daily          Show today's focus summary
   weekly         Show the past 7 days summary
   build-features Generate / refresh features_30s from raw events
+  goal set "<text>"  Set the active deep-work goal
+  goal show          Show the current active goal
+  goal clear         Clear the active goal
 
 Options:
   --date  YYYY-MM-DD   Target date (daily) or week end date (weekly)
@@ -180,10 +237,20 @@ Options:
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-function main() {
+async function main() {
+  const rawArgs = process.argv.slice(2);
   const { command, flags } = parseArgs(process.argv);
 
   openDb();
+
+  if (command === 'goal') {
+    try {
+      await cmdGoal(rawArgs);
+    } finally {
+      closeDb();
+    }
+    return;
+  }
 
   try {
     switch (command) {
@@ -199,4 +266,7 @@ function main() {
   }
 }
 
-main();
+main().catch(e => {
+  console.error(e.message);
+  process.exitCode = 1;
+});

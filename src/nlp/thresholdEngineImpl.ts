@@ -3,9 +3,18 @@ import type { ThresholdEngine } from "./thresholdEngine";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { getDb } = require("../storage/sqlite/db");
 
-const FIXED_T_ON  = 0.62;
-const FIXED_T_OFF = 0.48;
-const T_ON_FLOOR  = 0.50;
+function readEnvNumber(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+// Similarity-only mode defaults (heuristic boosts removed).
+const FIXED_T_ON  = readEnvNumber("NLP_FIXED_T_ON", 0.50);
+const FIXED_T_OFF = readEnvNumber("NLP_FIXED_T_OFF", 0.30);
+const T_ON_FLOOR  = readEnvNumber("NLP_T_ON_FLOOR", 0.45);
+const FORCE_FIXED = process.env.NLP_FORCE_FIXED_THRESHOLDS === "1";
 
 const CREATE_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS semantic_calibration (
@@ -52,6 +61,9 @@ export class ThresholdEngineImpl implements ThresholdEngine {
     goalId: string
   ): Promise<{ tOn: number; tOff: number; mode: "fixed" | "calibrated" }> {
     ensureTable();
+    if (FORCE_FIXED) {
+      return { tOn: FIXED_T_ON, tOff: FIXED_T_OFF, mode: "fixed" };
+    }
     const row = getDb().prepare(SELECT_SQL).get(goalId, todayUtc()) as
       | { t_on: number; t_off: number }
       | undefined;

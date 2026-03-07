@@ -35,14 +35,27 @@ class LRUCache<K, V> {
 // ---------------------------------------------------------------------------
 // EmbeddingServiceImpl
 // ---------------------------------------------------------------------------
-const MODEL_ID = "Xenova/paraphrase-multilingual-MiniLM-L12-v2";
+const DEFAULT_MODEL_ID = "Xenova/paraphrase-multilingual-MiniLM-L12-v2";
+
+interface EmbeddingServiceOptions {
+  cacheSize?: number;
+  modelId?: string;
+}
 
 export class EmbeddingServiceImpl implements EmbeddingService {
   private pipe: ((text: string, opts: object) => Promise<{ data: Float32Array }>) | null = null;
   private readonly cache: LRUCache<string, number[]>;
+  private readonly modelId: string;
   private initPromise: Promise<void> | null = null;
 
-  constructor(cacheSize = 5000) {
+  constructor(options: EmbeddingServiceOptions | number = {}) {
+    const normalizedOptions =
+      typeof options === "number"
+        ? { cacheSize: options }
+        : options;
+
+    const cacheSize = normalizedOptions.cacheSize ?? 5000;
+    this.modelId = normalizedOptions.modelId ?? DEFAULT_MODEL_ID;
     this.cache = new LRUCache<string, number[]>(cacheSize);
   }
 
@@ -60,7 +73,7 @@ export class EmbeddingServiceImpl implements EmbeddingService {
   private async _load(): Promise<void> {
     // Dynamic import keeps transformers.js optional at compile time
     const { pipeline } = await import("@xenova/transformers");
-    this.pipe = await pipeline("feature-extraction", MODEL_ID, {
+    this.pipe = await pipeline("feature-extraction", this.modelId, {
       quantized: true,
     }) as unknown as (text: string, opts: object) => Promise<{ data: Float32Array }>;
   }
