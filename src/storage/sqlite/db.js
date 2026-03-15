@@ -88,6 +88,9 @@ function _migrate(db) {
   const migrations = [
     [1, _m001],
     [2, _m002],
+    [3, _m003],
+    [4, _m004],
+    [5, _m005],
   ];
 
   for (const [v, fn] of migrations) {
@@ -179,6 +182,46 @@ function _m002(db) {
       deep_work_candidate_flag INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS idx_f30_local ON features_30s (window_start_local);
+  `);
+}
+
+// ─── Migration 003: semantic calibration thresholds ──────────────────────────
+
+function _m003(db) {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS semantic_calibration (
+      goal_id        TEXT NOT NULL,
+      day_utc        TEXT NOT NULL,
+      t_on           REAL NOT NULL,
+      t_off          REAL NOT NULL,
+      sample_count   INTEGER NOT NULL,
+      created_at_utc TEXT NOT NULL,
+      PRIMARY KEY (goal_id, day_utc)
+    );
+  `);
+}
+
+// ─── Migration 004: active goal storage ──────────────────────────────────────
+
+function _m004(db) {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS active_goal (
+      id              TEXT PRIMARY KEY,
+      text            TEXT NOT NULL,
+      normalized_text TEXT NOT NULL,
+      model_id        TEXT NOT NULL,
+      created_at_utc  TEXT NOT NULL,
+      updated_at_utc  TEXT NOT NULL
+    );
+  `);
+}
+
+// ─── Migration 005: split goal into todoText + appHint ───────────────────────
+
+function _m005(db) {
+  db.exec(`
+    ALTER TABLE active_goal ADD COLUMN todo_text TEXT NOT NULL DEFAULT '';
+    ALTER TABLE active_goal ADD COLUMN app_hint  TEXT;
   `);
 }
 

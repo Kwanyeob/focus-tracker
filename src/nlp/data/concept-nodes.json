@@ -1,0 +1,107 @@
+{
+  "PHYSICAL_FITNESS": {
+    "aliases": ["getting in shape", "losing weight", "getting fit", "working out", "building muscle", "training for a marathon", "improving my health"],
+    "activityTerms": ["nutrition", "workout", "exercise", "running", "diet", "calorie", "gym", "sleep", "recovery", "protein", "cardio", "stretching", "yoga", "fitness", "training", "muscle", "weight", "body", "meal prep", "supplement", "BMI", "heart rate"],
+    "resourceTypes": ["tracker app", "recipe site", "fitness video", "medical reference", "equipment shop", "workout program", "nutrition calculator"],
+    "antiPatterns": ["social media feed", "entertainment streaming", "news aggregator", "online game", "shopping unrelated"],
+    "relatedConcepts": ["COOKING_SKILLS", "HEALTH"]
+  },
+  "PERSONAL_FINANCE": {
+    "aliases": ["organizing finances", "managing money", "budgeting", "saving money", "paying off debt", "investing", "financial planning", "tracking expenses", "building an emergency fund", "getting out of debt"],
+    "activitySubTypes": {
+      "action_tool": {
+        "terms": ["budget", "budgeting", "expense", "income", "tracker", "cashflow", "YNAB", "mint", "spreadsheet", "payoff", "savings", "networth", "bill", "frugal"],
+        "relevanceWeight": 1.0,
+        "description": "Personal finance tools and active budgeting/tracking behavior"
+      },
+      "personal_management": {
+        "terms": ["bank", "loan", "mortgage", "credit", "interest", "tax", "insurance", "retirement", "401k", "IRA", "HSA", "W2", "1099", "beneficiary", "deduction", "withholding", "escrow", "amortization", "refinance", "premium"],
+        "relevanceWeight": 1.0,
+        "description": "Managing institutional financial accounts and obligations"
+      },
+      "learning_reference": {
+        "terms": ["investopedia", "compound", "dividend", "ETF", "portfolio", "index", "Roth", "avalanche", "snowball", "literacy", "firecalc", "rebalance", "allocation", "diversify", "emergency", "fund", "investment", "wealth"],
+        "relevanceWeight": 0.7,
+        "description": "Educational finance content and reference material"
+      },
+      "speculation_news": {
+        "terms": ["bloomberg", "CNBC", "WSJ", "bull", "bear", "crypto", "options", "trading", "wallstreetbets", "stonks", "macro", "fed", "market", "crash", "pump", "meme", "yolo", "stock", "forex", "shorting", "leverage"],
+        "relevanceWeight": 0.2,
+        "description": "Speculative trading content and macro financial news"
+      }
+    },
+    "resourceTypes": ["bank portal", "investment platform", "finance blog", "tax tool", "budgeting app", "calculator", "spreadsheet", "insurance portal"],
+    "antiPatterns": ["entertainment", "shopping unrelated to finance", "social media feed", "gambling site", "get-rich-quick content"],
+    "relatedConcepts": ["PERSONAL_PRODUCTIVITY"]
+  },
+  "CAREER_ADVANCEMENT": {
+    "aliases": ["becoming better at interviews", "job hunting", "getting a job", "improving my resume", "career change", "getting promoted"],
+    "activityTerms": ["interview", "resume", "cover letter", "salary", "hiring", "recruiter", "networking", "portfolio", "LinkedIn", "skill", "certification", "job board", "company research", "offer", "negotiation", "behavioral question", "STAR method"],
+    "resourceTypes": ["job board", "professional network", "interview prep site", "resume builder", "company review site", "salary database"],
+    "antiPatterns": ["entertainment", "social media feed", "online game"],
+    "relatedConcepts": ["PERSONAL_PROJECT"]
+  },
+  "HOME_IMPROVEMENT": {
+    "aliases": ["making apartment nicer", "decorating", "home decor", "furnishing", "renovating", "organizing my space", "interior design"],
+    "activityTerms": ["furniture", "decor", "interior", "design", "room", "layout", "color", "paint", "shelf", "lighting", "curtain", "rug", "plant", "storage", "organize", "minimalist", "cozy", "apartment", "living room", "bedroom", "kitchen"],
+    "resourceTypes": ["furniture store", "interior design blog", "home improvement forum", "DIY tutorial", "shopping site for home goods", "Pinterest board"],
+    "antiPatterns": ["entertainment streaming", "news", "unrelated shopping"],
+    "relatedConcepts": []
+  },
+  "PERSONAL_PROJECT": {
+    "aliases": ["working on my side project", "building an app", "coding my project", "making my website", "writing code for my project"],
+    "activityTerms": ["code", "programming", "API", "framework", "deploy", "debug", "repository", "documentation", "library", "database", "server", "frontend", "backend", "hosting", "domain", "testing", "version control", "git", "commit", "pull request", "CI", "component", "dependency", "runtime", "build", "lint"],
+    "resourceTypes": ["code repository", "documentation site", "developer forum", "deployment platform", "package registry", "editor/IDE"],
+    "antiPatterns": ["social media feed", "entertainment", "news aggregator"],
+    "relatedConcepts": ["ACADEMIC_STUDY", "PRODUCT_DESIGN"]
+  },
+  "PRODUCT_DESIGN": {
+    "aliases": ["building a product", "working on my product", "designing my app", "creating a landing page", "building my brand", "validating my idea", "doing user research", "making a prototype", "building my MVP", "creating a pitch deck", "growing my business", "working on my startup"],
+    "activityTerms": ["mockup", "wireframe", "prototype", "MVP", "landing page", "pricing", "roadmap", "feature", "feedback", "user research", "persona", "brand", "logo", "copy", "conversion", "onboarding", "funnel", "A/B", "user story", "journey", "proposition", "pitch", "market research", "competitor", "positioning", "go-to-market", "sprint", "backlog", "usability", "typography", "palette", "no-code", "CTA", "retention", "churn", "NPS", "activation", "interview", "survey"],
+    "resourceTypes": ["design tool", "no-code platform", "product analytics", "A/B testing tool", "landing page builder", "survey tool", "customer feedback platform", "project management tool", "brand asset tool", "presentation tool", "competitor research site", "email marketing tool"],
+    "antiPatterns": ["entertainment streaming", "social media feed", "unrelated news", "gaming", "unrelated shopping"],
+    "relatedConcepts": ["PERSONAL_PROJECT", "CAREER_ADVANCEMENT"]
+  },
+  "COOKING_SKILLS": {
+    "aliases": ["learning to cook", "improving my cooking", "meal planning", "trying new recipes", "cooking healthy meals"],
+    "activityTerms": ["recipe", "ingredient", "cooking", "cuisine", "chef", "meal", "food", "kitchen", "technique", "flavor", "seasoning", "baking", "prep", "grocery", "nutrition", "serving"],
+    "resourceTypes": ["recipe site", "cooking video", "food blog", "grocery delivery", "kitchen equipment shop"],
+    "antiPatterns": ["entertainment streaming", "social media feed"],
+    "relatedConcepts": ["PHYSICAL_FITNESS"]
+  },
+  "MUSIC_SKILLS": {
+    "aliases": ["learning guitar", "learning piano", "learning music", "improving at instrument", "writing songs"],
+    "activityTerms": ["chord", "tab", "scale", "music theory", "tempo", "rhythm", "strumming", "fingerpicking", "tuning", "practice", "sheet music", "lesson", "backing track", "metronome", "ear training", "notation", "songwriting"],
+    "resourceTypes": ["tab site", "music lesson video", "music theory site", "instrument shop", "practice tool"],
+    "antiPatterns": ["social media feed", "entertainment unrelated to music"],
+    "relatedConcepts": []
+  },
+  "LANGUAGE_LEARNING": {
+    "aliases": ["learning a language", "learning Spanish", "learning Japanese", "improving my English", "studying French"],
+    "activityTerms": ["vocabulary", "grammar", "conjugation", "pronunciation", "fluency", "conversation", "translation", "immersion", "flashcard", "lesson", "native speaker", "dialect", "reading practice", "listening practice", "writing practice"],
+    "resourceTypes": ["language app", "dictionary", "translation tool", "language exchange forum", "subtitle tool", "lesson video"],
+    "antiPatterns": ["entertainment unrelated to target language"],
+    "relatedConcepts": []
+  },
+  "ACADEMIC_STUDY": {
+    "aliases": ["studying for exams", "doing homework", "writing my thesis", "preparing for finals", "reviewing lecture notes"],
+    "activityTerms": ["study", "exam", "homework", "lecture", "course", "textbook", "quiz", "assignment", "grade", "professor", "research", "paper", "citation", "thesis", "dissertation", "academic", "review", "flashcard", "notes"],
+    "resourceTypes": ["learning platform", "university portal", "academic database", "flashcard app", "citation tool", "document editor"],
+    "antiPatterns": ["social media feed", "entertainment", "shopping"],
+    "relatedConcepts": ["PERSONAL_PROJECT"]
+  },
+  "PERSONAL_PRODUCTIVITY": {
+    "aliases": ["getting organized", "managing my time", "being more productive", "building better habits", "planning my week"],
+    "activityTerms": ["organize", "plan", "schedule", "task", "habit", "routine", "calendar", "deadline", "priority", "focus", "goal", "time management", "checklist", "workflow", "efficiency"],
+    "resourceTypes": ["task manager", "calendar app", "habit tracker", "productivity blog", "note-taking app"],
+    "antiPatterns": ["social media feed", "entertainment", "news aggregator"],
+    "relatedConcepts": []
+  },
+  "HEALTH": {
+    "aliases": ["improving my health", "managing my condition", "understanding symptoms", "finding a doctor", "mental health"],
+    "activityTerms": ["health", "medical", "symptom", "treatment", "doctor", "therapy", "medication", "wellness", "mental health", "anxiety", "sleep", "diagnosis", "prevention", "clinic", "insurance"],
+    "resourceTypes": ["medical reference", "health portal", "telemedicine", "pharmacy", "insurance portal", "wellness app"],
+    "antiPatterns": ["entertainment", "social media feed"],
+    "relatedConcepts": ["PHYSICAL_FITNESS"]
+  }
+}
