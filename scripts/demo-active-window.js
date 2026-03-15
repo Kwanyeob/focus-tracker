@@ -39,7 +39,6 @@ const { TitleNormalizerImpl } = require('../src/nlp/titleNormalizerImpl');
 const { EmbeddingServiceImpl } = require('../src/nlp/embeddingServiceImpl');
 const { ThresholdEngineImpl } = require('../src/nlp/thresholdEngineImpl');
 const { SemanticMatchEngineImpl } = require('../src/nlp/semanticMatchEngineImpl');
-const { BoostTableImpl } = require('../src/nlp/boostTableImpl');
 
 const OUT_DIR = path.join(__dirname, '..', 'data');
 const OUT_FILE = path.join(OUT_DIR, 'demo-events.jsonl');
@@ -74,13 +73,12 @@ function printResult(reason, dwellMs, tag, result) {
   const titleNorm = new TitleNormalizerImpl();
   const threshEng = new ThresholdEngineImpl();
 
-  const boostTable = new BoostTableImpl();
   const embedSvcA = new EmbeddingServiceImpl();
-  const matchEngA = new SemanticMatchEngineImpl(goalMgr, titleNorm, embedSvcA, threshEng, boostTable);
+  const matchEngA = new SemanticMatchEngineImpl(goalMgr, titleNorm, embedSvcA, threshEng);
 
   const embedSvcB = ENABLE_PLAN_B ? new EmbeddingServiceImpl({ modelId: PLAN_B_MODEL_ID }) : null;
   const matchEngB = embedSvcB
-    ? new SemanticMatchEngineImpl(goalMgr, titleNorm, embedSvcB, threshEng, boostTable)
+    ? new SemanticMatchEngineImpl(goalMgr, titleNorm, embedSvcB, threshEng)
     : null;
 
   let nlpReadyA = false;
